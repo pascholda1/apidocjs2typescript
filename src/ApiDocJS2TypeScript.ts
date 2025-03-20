@@ -32,7 +32,6 @@ export default class ApiDocJS2TypeScript {
 
   constructor(docsPath: string, outputPath: string = 'types') {
     const baseDir = process.cwd();
-    console.log(baseDir, typeof path);
 
     this.docsPath = path.join(baseDir, docsPath);
     this.outputPath = path.join(baseDir, outputPath);
@@ -102,15 +101,10 @@ export default class ApiDocJS2TypeScript {
 
     }
 
-    console.log('nesting -----------');
-    console.log(JSON.stringify(responseFields));
-
     return responseFields;
   }
 
   public generateRequestModels() {
-    const renderer = new TypeScriptRenderer();
-
     const files: Record<string, ApiAction[]> = {};
     this.apiActions.forEach(apiAction => {
       files[apiAction.group] ??= [];
@@ -148,8 +142,8 @@ export default class ApiDocJS2TypeScript {
             };
 
             return [
-              renderer.renderJSDocsInterfaceComment(apiAction),
-              renderer.renderInterface(apiAction.name + 'Request', requestParams),
+              TypeScriptRenderer.renderJSDocsInterfaceComment(apiAction),
+              TypeScriptRenderer.renderInterface(apiAction.name + 'Request', requestParams),
             ].join('\n');
           });
 
@@ -164,6 +158,10 @@ export default class ApiDocJS2TypeScript {
       );
 
     }
+
+  }
+
+  public generateResponseModels() {
 
   }
 
