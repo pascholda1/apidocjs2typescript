@@ -1,0 +1,46 @@
+{
+	"name": "apidocjs2typescript",
+	"description": "ApiDocJS to Typescript converter",
+	"keywords": [
+		"apidoc",
+		"typescript"
+	],
+	"author": "Simon Paschold (https://github.com/pascholda1)",
+	"version": "1.0.0",
+	"license": "MIT",
+	"main": "src/ApiDocJSParser.ts",
+	"types": "apidoc2dts.d.ts",
+	"bin": {
+		"apidoc2typescript": "./dist/apidoc2typescript.js"
+	},
+	"scripts": {
+		"build": "./node_modules/.bin/tsc",
+		"run": "npm run build && node ./dist/index.js ./dummyData ./dummyData"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/pascholda1/apidoc2dts.git"
+	},
+	"files": [
+		"LICENSE"
+	],
+	"dependencies": {
+		"fs": "^0.0.1-security",
+		"lodash.groupby": "4.6.0",
+		"lodash.merge": "4.6.2",
+		"lodash.set": "4.3.2",
+		"lodash.upperfirst": "4.3.1",
+		"node": "^22.13.1",
+		"path": "^0.12.7",
+		"source-map-support": "0.5.16"
+	},
+	"devDependencies": {
+		"@types/ejs": "3.1.5",
+		"@types/lodash.groupby": "4.6.9",
+		"@types/lodash.merge": "4.6.9",
+		"@types/lodash.set": "4.3.9",
+		"@types/lodash.upperfirst": "4.3.9",
+		"@types/node": "^22.13.10",
+		"typescript": "5.6.3"
+	}
+}
