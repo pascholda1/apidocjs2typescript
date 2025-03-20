@@ -20,10 +20,11 @@ export default class TypeScriptRenderer {
       if (field.children) {
         const optionalModifier = TypeHelper.getOptionalModifier(field);
         const docs = TypeScriptRenderer.renderJSDocsParameterComment(field);
+        const array = field.type && TypeHelper.isArrayType(field.type) ? '[]' : '';
         renderedFields.push(`${docs}
         ${name}${optionalModifier}: {
         ${TypeScriptRenderer.renderNestedParams(field.children)}
-        }`);
+        }${array}`);
       } else {
         renderedFields.push(TypeScriptRenderer.renderApiParam(name, field));
       }

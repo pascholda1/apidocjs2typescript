@@ -52,6 +52,7 @@ export default class TypeHelper {
       ...TypeHelper.stringTypes,
       ...TypeHelper.numberTypes,
       ...TypeHelper.booleanTypes,
+      ...TypeHelper.objectTypes,
       ...TypeHelper.arrayTypes,
     };
   }
@@ -99,5 +100,9 @@ export default class TypeHelper {
 
   public static isBoolType(type: string) {
     return !!TypeHelper.booleanTypes[type];
+  }
+
+  public static isArrayType(type: string) {
+    return !!TypeHelper.arrayTypes[type];
   }
 }
