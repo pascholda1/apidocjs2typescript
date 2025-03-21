@@ -9,7 +9,6 @@
 	"version": "1.0.0",
 	"license": "MIT",
 	"main": "src/ApiDocJSParser.ts",
-	"types": "apidoc2dts.d.ts",
 	"bin": {
 		"apidoc2typescript": "./dist/apidoc2typescript.js"
 	},
