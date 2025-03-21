@@ -1,6 +1,8 @@
 # (WIP) ApiDocJS2TypeScript
 
-[APIDOC](http://apidocjs.com) to Typescript Definition file convertor.
+[APIDOC](http://apidocjs.com) to the Typescript Generator.
+
+The generator creates a ready-to-use API connection based on your ApiDocJs documentation.
 
 ## Installation
 
@@ -10,9 +12,17 @@ npm install apidocjs2typescript
 
 ## Usage
 
-1. make sure you use only `Header`, `Path`, `Query` or `Body` as Group names for `@apiParam`, all other groups will be ignored
-2. generate your [APIDOC](http://apidocjs.com) documentation
-3. run `apidocjs2typescript ./path/to/documentation ./output/path`
+Make sure you use [APIDOC](http://apidocjs.com) correctly
+
+- use `@apiHeader` for headers
+- use `@apiParam` for path and query parameters
+- use `@apiBody` for body parameters
+
+Generate the documentation
+
+Finally run `apidocjs2typescript ./path/to/documentation ./output/path`
+
+Now you can use the shipped RequestService with a generated Endpoint definition to make API Calls. See the Example below for more details
 
 ## Example
 
@@ -23,14 +33,14 @@ The Documentation:
 ```injectablephp
 /**
  * @apiVersion     1.0.0
- * @api            {post} /your/endpoint.json
+ * @api            {post} /your/endpoint/:pageId.json
  * @apiName        SampleAction
  * @apiDescription This is a simple sample
  * @apiGroup       Samples
  * @apiDeprecated
  * @apiHeader {String=application/x-www-form-urlencoded,multipart/formdata,application/json} Content-Type
- * @apiParam (Path) {String} pageId     a path param
- * @apiParam (Query) {String} search    a query param
+ * @apiParam {String} pageId     a path param
+ * @apiParam {String} search    a query param
  * @apiBody {String[]} product          list of products
  * @apiBody {String=de,en} [language]   
  *               
@@ -98,4 +108,52 @@ export interface SampleActionRequest {
     }
   };
 }
+```
+
+The generated Endpoint:
+
+```typescript
+export const SampleActionEndpoint = new Endpoint<PostSingleRequest, unknown>(
+    new URL('/your/endpoint/:pageId.json'),
+    'POST'
+);
+```
+
+The generated Response Interface:
+
+```typescript
+// TODO
+```
+
+Make an API Call to the generated Endpoint:
+
+```typescript
+import {RequestService}       from './output/path/RequestService';
+import {SampleActionEndpoint} from './output/path/ApiName/endpoints/Secure.Files';
+import {RequestServiceError}  from './output/path/RequestServiceError';
+
+new RequestService(SampleActionEndpoint)
+    .sendRequest({
+      header: {
+        'Content-Type': 'multipart/formdata,application/json',
+      },
+      path: {
+        pageId: 'sample',
+      },
+      query: {
+        search: 'sample',
+      },
+      body: {
+        product: ['p1', 'p2'],
+        no: 1,
+        nested: {
+          value1: 'value1',
+          value2: {
+            deepValue: 'deeeep',
+          },
+        },
+      },
+    })
+    .then(result => console.log(result))
+    .catch((error: RequestServiceError) => console.error(error));
 ```

@@ -15,7 +15,7 @@
 	},
 	"scripts": {
 		"build": "./node_modules/.bin/tsc",
-		"run": "npm run build && node ./dist/index.js ./dummyData ./dummyData"
+		"run": "npm run build && node ./dist/index.js ./dummyData ./dummyData/api"
 	},
 	"repository": {
 		"type": "git",
@@ -32,10 +32,12 @@
 		"lodash.upperfirst": "4.3.1",
 		"node": "^22.13.1",
 		"path": "^0.12.7",
+		"qs": "^6.14.0",
 		"source-map-support": "0.5.16"
 	},
 	"devDependencies": {
 		"@types/ejs": "3.1.5",
+		"@types/qs": "6.9.18",
 		"@types/lodash.groupby": "4.6.9",
 		"@types/lodash.merge": "4.6.9",
 		"@types/lodash.set": "4.3.9",

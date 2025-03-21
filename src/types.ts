@@ -29,6 +29,7 @@ export interface ApiAction {
   type: string;
   name: string;
   group: string;
+  url: string;
   deprecated?: boolean | {
     content: string
   };

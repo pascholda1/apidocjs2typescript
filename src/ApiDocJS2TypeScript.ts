@@ -45,6 +45,10 @@ export default class ApiDocJS2TypeScript {
 
   }
 
+  private getRequestInterfaceName(apiAction: ApiAction) {
+    return apiAction.name + 'Request';
+  }
+
   private getRequestHeaderParameters(action: ApiAction): ApiParam[] {
     return [
       ...action.header?.fields?.Header ?? [],
@@ -65,6 +69,16 @@ export default class ApiDocJS2TypeScript {
       ...action.body ?? [],
       ...action.parameter?.fields?.Body ?? [],
     ];
+  }
+
+  private get groupedActions(): Record<string, ApiAction[]> {
+    const files: Record<string, ApiAction[]> = {};
+    this.apiActions.forEach(apiAction => {
+      files[apiAction.group] ??= [];
+      files[apiAction.group].push(apiAction);
+    });
+
+    return files;
   }
 
   protected static nestedFields(apiParams: ApiParam[]): NestedApiParams {
@@ -105,11 +119,8 @@ export default class ApiDocJS2TypeScript {
   }
 
   public generateRequestModels() {
-    const files: Record<string, ApiAction[]> = {};
-    this.apiActions.forEach(apiAction => {
-      files[apiAction.group] ??= [];
-      files[apiAction.group].push(apiAction);
-    });
+
+    const files = this.groupedActions;
 
     for (const filename in files) {
       const renderedActions = files[filename]
@@ -143,11 +154,11 @@ export default class ApiDocJS2TypeScript {
 
             return [
               TypeScriptRenderer.renderJSDocsInterfaceComment(apiAction),
-              TypeScriptRenderer.renderInterface(apiAction.name + 'Request', requestParams),
+              TypeScriptRenderer.renderInterface(this.getRequestInterfaceName(apiAction), requestParams),
             ].join('\n');
           });
 
-      const out = path.join(this.outputPath, this.apiName, 'request');
+      const out = path.join(this.outputPath, this.apiName, 'requests');
       if (!fs.existsSync(out)) {
         fs.mkdirSync(out, {recursive: true});
       }
@@ -162,7 +173,53 @@ export default class ApiDocJS2TypeScript {
   }
 
   public generateResponseModels() {
+    // TODO: implement response model generation
+  }
 
+  public generateEndpointDefinitions() {
+
+    const files = this.groupedActions;
+
+    for (const filename in files) {
+      let imports = 'import Endpoint from \'../../Endpoint\'';
+      const renderedEndpoints = files[filename]
+          .map(apiAction => {
+
+            imports += `
+            import type {${this.getRequestInterfaceName(apiAction)}} from '../requests/${filename}'`;
+
+            return `export const ${apiAction.name}Endpoint = new Endpoint<${this.getRequestInterfaceName(apiAction)}, unknown>(
+  new URL('${apiAction.url}'),
+  '${apiAction.type.toUpperCase()}'
+);`;
+          });
+
+      const out = path.join(this.outputPath, this.apiName, 'endpoints');
+      if (!fs.existsSync(out)) {
+        fs.mkdirSync(out, {recursive: true});
+      }
+
+      fs.writeFileSync(
+          path.join(out, `${filename}.ts`),
+          `${imports}
+${renderedEndpoints.join('\n')}`,
+      );
+    }
+  }
+
+  public copyStaticClasses() {
+    const sourceDir = path.join(__dirname, '../static');
+
+    fs.mkdirSync(this.outputPath, {recursive: true});
+
+    const items = fs.readdirSync(sourceDir);
+
+    items.forEach(item => {
+      const sourcePath = path.join(sourceDir, item);
+      const destPath = path.join(this.outputPath, item);
+
+      fs.cpSync(sourcePath, destPath);
+    });
   }
 
 }
