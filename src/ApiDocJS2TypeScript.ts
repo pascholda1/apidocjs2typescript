@@ -10,6 +10,7 @@ import lodashSet from 'lodash.set';
 import {
   // ApiFields,
   ApiAction,
+  ApiFields,
   ApiParam,
   ApiProject,
   NestedApiParams,
@@ -50,24 +51,40 @@ export default class ApiDocJS2TypeScript {
   }
 
   private getRequestHeaderParameters(action: ApiAction): ApiParam[] {
-    return [
-      ...action.header?.fields?.Header ?? [],
-      ...action.parameter?.fields?.Header ?? [],
-    ];
-  }
+    if (!action.header?.fields) {
+      return [];
+    }
 
-  private getRequestQueryParameters(action: ApiAction): ApiParam[] {
-    return action.parameter?.fields?.Query ?? [];
+    return this.getParameters(action.header?.fields);
   }
 
   private getRequestPathParameters(action: ApiAction): ApiParam[] {
-    return action.parameter?.fields?.Path ?? [];
+    if (!action.parameter?.fields) {
+      return [];
+    }
+
+    const url = action.url;
+    return this.getParameters(action.parameter.fields)
+        .filter(parameter => url.includes(`:${parameter.field}`));
+  }
+
+  private getRequestQueryParameters(action: ApiAction): ApiParam[] {
+    if (!action.parameter?.fields) {
+      return [];
+    }
+
+    const pathParameters = this.getRequestPathParameters(action);
+    return this.getParameters(action.parameter.fields)
+        .filter(parameter => !pathParameters.find(pathParam => pathParam.field === parameter.field));
+  }
+
+  private getParameters(apiFields: ApiFields): ApiParam[] {
+    return Object.values(apiFields).flat();
   }
 
   private getRequestBodyParameters(action: ApiAction): ApiParam[] {
     return [
       ...action.body ?? [],
-      ...action.parameter?.fields?.Body ?? [],
     ];
   }
 
@@ -125,30 +142,35 @@ export default class ApiDocJS2TypeScript {
     for (const filename in files) {
       const renderedActions = files[filename]
           .map(apiAction => {
+            const headerParams = this.getRequestHeaderParameters(apiAction);
+            const pathParams = this.getRequestPathParameters(apiAction);
+            const queryParams = this.getRequestQueryParameters(apiAction);
+            const bodyParams = this.getRequestBodyParameters(apiAction);
+
             const requestParams: NestedApiParams = {
               header: {
                 field: 'header',
-                optional: this.getRequestHeaderParameters(apiAction).length === 0,
+                optional: headerParams.length === 0,
                 group: 'header',
-                children: ApiDocJS2TypeScript.nestedFields(this.getRequestHeaderParameters(apiAction)),
+                children: ApiDocJS2TypeScript.nestedFields(headerParams),
               },
               path: {
                 field: 'path',
-                optional: this.getRequestPathParameters(apiAction).length === 0,
+                optional: pathParams.length === 0,
                 group: 'path',
-                children: ApiDocJS2TypeScript.nestedFields(this.getRequestPathParameters(apiAction)),
+                children: ApiDocJS2TypeScript.nestedFields(pathParams),
               },
               query: {
                 field: 'query',
-                optional: this.getRequestQueryParameters(apiAction).length === 0,
+                optional: queryParams.length === 0,
                 group: 'query',
-                children: ApiDocJS2TypeScript.nestedFields(this.getRequestQueryParameters(apiAction)),
+                children: ApiDocJS2TypeScript.nestedFields(queryParams),
               },
               body: {
                 field: 'body',
-                optional: this.getRequestBodyParameters(apiAction).length === 0,
+                optional: bodyParams.length === 0,
                 group: 'body',
-                children: ApiDocJS2TypeScript.nestedFields(this.getRequestBodyParameters(apiAction)),
+                children: ApiDocJS2TypeScript.nestedFields(bodyParams),
               },
             };
 

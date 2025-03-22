@@ -1,11 +1,3 @@
-export enum ParameterGroup {
-  Header    = 'Header',
-  Path      = 'Path',
-  Query     = 'Query',
-  Body      = 'Body',
-  Parameter = 'Parameter'
-};
-
 export interface ApiProject {
   name: string;
 }
@@ -19,7 +11,7 @@ export interface ApiParam {
   description?: string;
 }
 
-export type ApiFields = Partial<Record<ParameterGroup, ApiParam[]>>
+export type ApiFields = Record<string, ApiParam[]>
 
 export interface ApiFieldGroup {
   fields?: ApiFields,
