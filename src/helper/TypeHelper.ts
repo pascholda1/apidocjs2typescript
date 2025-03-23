@@ -3,29 +3,27 @@ import {ApiParam} from '../types';
 export default class TypeHelper {
   private static readonly stringTypes: Record<string, 'string'> = {
     'string': 'string',
-    'String': 'string',
+    'char': 'string',
+    'character': 'string',
   };
 
   private static readonly numberTypes: Record<string, 'number'> = {
     'number': 'number',
-    'Number': 'number',
-    'Int': 'number',
-    'Long': 'number',
-    'Float': 'number',
-    'Double': 'number',
+    'int': 'number',
+    'long': 'number',
+    'float': 'number',
+    'double': 'number',
   };
 
   private static readonly booleanTypes: Record<string, 'boolean'> = {
     'boolean': 'boolean',
-    'Boolean': 'boolean',
-    'Bool': 'boolean',
+    'bool': 'boolean',
   };
 
   private static readonly objectTypes: Record<string, 'object'> = {
     'object': 'object',
-    'Object': 'object',
-    'Record': 'object',
-    'Dictionary': 'object',
+    'record': 'object',
+    'dictionary': 'object',
   };
 
   private static get arrayTypes(): Record<string, string> {
@@ -83,7 +81,7 @@ export default class TypeHelper {
 
     }
 
-    return TypeHelper.typeMap[type] ?? type;
+    return TypeHelper.typeMap[type.toLowerCase()] ?? type;
   }
 
   public static getOptionalModifier(apiParam: ApiParam) {
@@ -91,18 +89,18 @@ export default class TypeHelper {
   }
 
   public static isStringType(type: string) {
-    return !!TypeHelper.stringTypes[type];
+    return !!TypeHelper.stringTypes[type.toLowerCase()];
   }
 
   public static isNumberType(type: string) {
-    return !!TypeHelper.numberTypes[type];
+    return !!TypeHelper.numberTypes[type.toLowerCase()];
   }
 
   public static isBoolType(type: string) {
-    return !!TypeHelper.booleanTypes[type];
+    return !!TypeHelper.booleanTypes[type.toLowerCase()];
   }
 
   public static isArrayType(type: string) {
-    return !!TypeHelper.arrayTypes[type];
+    return !!TypeHelper.arrayTypes[type.toLowerCase()];
   }
 }
