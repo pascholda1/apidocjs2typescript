@@ -28,10 +28,7 @@
 	],
 	"dependencies": {
 		"fs": "^0.0.1-security",
-		"lodash.groupby": "4.6.0",
-		"lodash.merge": "4.6.2",
-		"lodash.set": "4.3.2",
-		"lodash.upperfirst": "4.3.1",
+		"lodash": "^4.17.21",
 		"minimist": "^1.2.8",
 		"node": "^22.13.1",
 		"path": "^0.12.7",

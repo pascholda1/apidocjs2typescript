@@ -3,7 +3,7 @@
 import path from 'path';
 import fs   from 'fs';
 import util from 'util';
-import _set from 'lodash.set';
+import _set from 'lodash/set';
 
 import {
   ApiAction,
