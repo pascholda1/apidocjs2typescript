@@ -16,7 +16,7 @@ export class RequestService<RequestData extends BaseRequest, ResponseData = unkn
     this.endpoint = endpoint;
   }
 
-  sendRequest(data?: typeof this.endpoint.requestData): Promise<typeof this.endpoint.responseData> {
+  sendRequest(data: typeof this.endpoint.requestData): Promise<typeof this.endpoint.responseData> {
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
 

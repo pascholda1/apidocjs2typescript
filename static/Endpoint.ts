@@ -4,9 +4,9 @@ export default class Endpoint<RequestData = unknown, ResponseData = unknown> {
   readonly url: URL;
   readonly method: Method;
 
-  // @ts-expect-error
+  // @ts-expect-error - required for Type Inference
   requestData: RequestData;
-  // @ts-expect-error
+  // @ts-expect-error - required for Type Inference
   responseData: ResponseData;
 
   constructor(path: URL, method: Method) {
