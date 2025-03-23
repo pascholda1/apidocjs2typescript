@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import ApiDocJS2TypeScript from './ApiDocJS2TypeScript';
 import minimist            from 'minimist';
 

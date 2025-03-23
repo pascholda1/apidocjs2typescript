@@ -10,7 +10,8 @@
 		"sourceMap": false,
 		"allowSyntheticDefaultImports": true,
 		"outDir": "dist",
-		"declaration": false
+		"declaration": false,
+		"removeComments": false
 	},
 	"include": [
 		"src/**/*.ts"
