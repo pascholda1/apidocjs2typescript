@@ -1,5 +1,9 @@
 export interface ApiProject {
   name?: string;
+  generator?: {
+    name: string,
+    version: string
+  };
 }
 
 export interface ApiParam {

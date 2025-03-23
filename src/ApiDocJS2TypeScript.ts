@@ -41,26 +41,23 @@ export default class ApiDocJS2TypeScript {
   public async loadData() {
     const apiProjectFile = path.join(this.docsPath, 'api_project.json');
     const apiDataFile = path.join(this.docsPath, 'api_data.json');
-
+    let apiProject: ApiProject | undefined;
     if (this.isWebUrl(this.docsPath)) {
 
       const apiProjectResponse = await fetch(apiProjectFile);
-      const apiProject: ApiProject = await apiProjectResponse.json();
-
-      if (apiProject?.name) {
-        this.setApiName(apiProject.name);
-      }
+      apiProject = await apiProjectResponse.json();
 
       const apiDataResponse = await fetch(apiDataFile);
       this.apiActions = await apiDataResponse.json();
 
     } else {
-      const apiProject: ApiProject = JSON.parse(fs.readFileSync(apiProjectFile, {encoding: 'utf-8'}));
-      if (apiProject?.name) {
-        this.setApiName(apiProject.name);
-      }
+      apiProject = JSON.parse(fs.readFileSync(apiProjectFile, {encoding: 'utf-8'}));
 
       this.apiActions = JSON.parse(fs.readFileSync(apiDataFile, {encoding: 'utf-8'}));
+    }
+
+    if (apiProject?.name) {
+      this.setApiName(apiProject.name);
     }
 
     return this;
