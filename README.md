@@ -5,6 +5,11 @@
 > If you're starting a new web service, **OpenAPI** is probably the better choice.  
 > However, if you're already using ApiDocJS, this package can help you connect your **TypeScript-based frontend** to your API with ease.
 
+> **🧾 Version Info:** Version 1.0 of this package is compatible with older versions of ApiDoc (tested with v0.29.0), which can still be built using Grunt.  
+> This is due to my specific need to support that version.  
+> **Support for newer ApiDoc versions is planned for v2 – coming soon.**
+
+
 Generate a ready-to-use API client based on an [ApiDocJs](http://apidocjs.com) documentation.
 
 ## 🔧 Installation
