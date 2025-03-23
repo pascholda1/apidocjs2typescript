@@ -58,7 +58,7 @@ The following sample will show how the generator will work.
 
 The Documentation:
 
-```injectablephp
+```typescript
 /**
  * @apiVersion     1.0.0
  * @api            {post} /your/endpoint/:pageId.json
