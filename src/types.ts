@@ -29,16 +29,7 @@ export interface ApiAction {
   parameter?: ApiFieldGroup;
   header?: ApiFieldGroup;
   body?: ApiParam[];
-  success: {
-    fields: {
-      'Success 200': ApiParam[];
-      201: ApiParam[];
-      204: ApiParam[];
-      400: ApiParam[];
-      403: ApiParam[];
-      [group: string]: ApiParam[];
-    };
-  };
+  success?: ApiFieldGroup;
 }
 
 export type ParamGroupName = string;

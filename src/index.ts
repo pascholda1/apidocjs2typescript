@@ -7,5 +7,6 @@ if (!apidocFolder) {
 
 const generator = new ApiDocJS2TypeScript(apidocFolder, process.argv[3]);
 generator.generateRequestModels();
+generator.generateResponseModels();
 generator.generateEndpointDefinitions();
 generator.copyStaticClasses();

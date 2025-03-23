@@ -1,11 +1,9 @@
 #!/usr/bin/env node
 
-import path      from 'path';
-import fs        from 'fs';
-import util      from 'util';
-import lodashSet from 'lodash.set';
-// import lodashUpperFirst from 'lodash.upperfirst';
-// import lodashMerge      from 'lodash.merge';
+import path from 'path';
+import fs   from 'fs';
+import util from 'util';
+import _set from 'lodash.set';
 
 import {
   // ApiFields,
@@ -18,8 +16,6 @@ import {
 import TypeScriptRenderer from './TypeScriptRenderer';
 
 export default class ApiDocJS2TypeScript {
-  static readonly DEFAULT_API_GROUP: string = 'nogroup';
-
   private readonly docsPath: string;
   private readonly outputPath: string;
 
@@ -46,8 +42,13 @@ export default class ApiDocJS2TypeScript {
 
   }
 
+  // getters
   private getRequestInterfaceName(apiAction: ApiAction) {
     return apiAction.name + 'Request';
+  }
+
+  private getResponseInterfaceName(apiAction: ApiAction) {
+    return apiAction.name + 'Response';
   }
 
   private getRequestHeaderParameters(action: ApiAction): ApiParam[] {
@@ -98,7 +99,8 @@ export default class ApiDocJS2TypeScript {
     return files;
   }
 
-  protected static nestedFields(apiParams: ApiParam[]): NestedApiParams {
+  // supporting
+  private static nestedFields(apiParams: ApiParam[]): NestedApiParams {
     const responseFields: NestedApiParams = {};
     let prevTopLevelField: string | undefined;
 
@@ -118,7 +120,7 @@ export default class ApiDocJS2TypeScript {
 
         // param.field = paramNesting.slice().pop()!;
 
-        lodashSet(responseFields, paramNesting, param);
+        _set(responseFields, paramNesting, param);
       } else {
 
         if (!responseFields[param.field]) {
@@ -135,6 +137,19 @@ export default class ApiDocJS2TypeScript {
     return responseFields;
   }
 
+  private writeOutputFile(filename: string, content: string) {
+    const out = path.dirname(filename);
+    if (!fs.existsSync(out)) {
+      fs.mkdirSync(out, {recursive: true});
+    }
+
+    fs.writeFileSync(
+        filename,
+        content,
+    );
+  }
+
+  // generate functions
   public generateRequestModels() {
 
     const files = this.groupedActions;
@@ -175,18 +190,13 @@ export default class ApiDocJS2TypeScript {
             };
 
             return [
-              TypeScriptRenderer.renderJSDocsInterfaceComment(apiAction),
+              TypeScriptRenderer.renderJSDocsActionComment(apiAction),
               TypeScriptRenderer.renderInterface(this.getRequestInterfaceName(apiAction), requestParams),
             ].join('\n');
           });
 
-      const out = path.join(this.outputPath, this.apiName, 'requests');
-      if (!fs.existsSync(out)) {
-        fs.mkdirSync(out, {recursive: true});
-      }
-
-      fs.writeFileSync(
-          path.join(out, `${filename}.ts`),
+      this.writeOutputFile(
+          path.join(this.outputPath, this.apiName, 'requests', `${filename}.ts`),
           renderedActions.join('\n'),
       );
 
@@ -195,7 +205,25 @@ export default class ApiDocJS2TypeScript {
   }
 
   public generateResponseModels() {
-    // TODO: implement response model generation
+
+    const files = this.groupedActions;
+
+    for (const filename in files) {
+      const renderedActions = files[filename]
+          .map(apiAction => {
+            if (!apiAction.success?.fields) {
+              return `export type ${apiAction.name}Response = unknown`;
+            }
+
+            return TypeScriptRenderer.renderInterface(this.getResponseInterfaceName(apiAction), ApiDocJS2TypeScript.nestedFields(this.getParameters(apiAction.success.fields)));
+
+          });
+
+      this.writeOutputFile(
+          path.join(this.outputPath, this.apiName, 'responses', `${filename}.ts`),
+          renderedActions.join('\n'),
+      );
+    }
   }
 
   public generateEndpointDefinitions() {
@@ -203,28 +231,19 @@ export default class ApiDocJS2TypeScript {
     const files = this.groupedActions;
 
     for (const filename in files) {
-      let imports = 'import Endpoint from \'../../Endpoint\'';
+      const imports = [`import Endpoint from '../../Endpoint'`];
       const renderedEndpoints = files[filename]
           .map(apiAction => {
 
-            imports += `
-            import type {${this.getRequestInterfaceName(apiAction)}} from '../requests/${filename}'`;
+            imports.push(TypeScriptRenderer.renderTypeImport(this.getRequestInterfaceName(apiAction), `../requests/${filename}`));
+            imports.push(TypeScriptRenderer.renderTypeImport(this.getResponseInterfaceName(apiAction), `../responses/${filename}`));
 
-            return `export const ${apiAction.name}Endpoint = new Endpoint<${this.getRequestInterfaceName(apiAction)}, unknown>(
-  new URL('${apiAction.url}'),
-  '${apiAction.type.toUpperCase()}'
-);`;
+            return TypeScriptRenderer.renderEndpointDefinition(apiAction, this.getRequestInterfaceName(apiAction), this.getResponseInterfaceName(apiAction));
           });
 
-      const out = path.join(this.outputPath, this.apiName, 'endpoints');
-      if (!fs.existsSync(out)) {
-        fs.mkdirSync(out, {recursive: true});
-      }
-
-      fs.writeFileSync(
-          path.join(out, `${filename}.ts`),
-          `${imports}
-${renderedEndpoints.join('\n')}`,
+      this.writeOutputFile(
+          path.join(this.outputPath, this.apiName, 'endpoints', `${filename}.ts`),
+          [...imports, ...renderedEndpoints].join('\n'),
       );
     }
   }
