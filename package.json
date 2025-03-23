@@ -1,14 +1,16 @@
 {
 	"name": "apidocjs2typescript",
-	"description": "ApiDocJS to Typescript converter",
+	"description": "Generate a ready-to-use API connection based on its [ApiDocJs](http://apidocjs.com) documentation.",
 	"keywords": [
 		"apidoc",
-		"typescript"
+		"apidocjs",
+		"typescript",
+		"code generator"
 	],
 	"author": "Simon Paschold (https://github.com/pascholda1)",
 	"version": "1.0.0",
 	"license": "MIT",
-	"main": "src/index.ts",
+	"main": "dist/index.js",
 	"bin": {
 		"apidoc2typescript": "dist/index.js"
 	},
@@ -18,7 +20,7 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/pascholda1/apidoc2dts.git"
+		"url": "https://github.com/pascholda1/apidocjs2typescript.git"
 	},
 	"files": [
 		"dist",
