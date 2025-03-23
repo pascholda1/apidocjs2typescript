@@ -8,20 +8,21 @@
 	"author": "Simon Paschold (https://github.com/pascholda1)",
 	"version": "1.0.0",
 	"license": "MIT",
-	"main": "src/ApiDocJSParser.ts",
+	"main": "src/index.ts",
 	"bin": {
-		"apidoc2typescript": "./dist/apidoc2typescript.js"
+		"apidoc2typescript": "dist/index.js"
 	},
 	"scripts": {
 		"build": "./node_modules/.bin/tsc",
-		"run": "npm run build && node ./dist/index.js ./dummyData ./dummyData/api"
+		"prepare": "npm run build"
 	},
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/pascholda1/apidoc2dts.git"
 	},
 	"files": [
-		"LICENSE"
+		"dist",
+		"static"
 	],
 	"dependencies": {
 		"fs": "^0.0.1-security",
@@ -29,6 +30,7 @@
 		"lodash.merge": "4.6.2",
 		"lodash.set": "4.3.2",
 		"lodash.upperfirst": "4.3.1",
+		"minimist": "^1.2.8",
 		"node": "^22.13.1",
 		"path": "^0.12.7",
 		"qs": "^6.14.0",
@@ -36,12 +38,13 @@
 	},
 	"devDependencies": {
 		"@types/ejs": "3.1.5",
-		"@types/qs": "6.9.18",
 		"@types/lodash.groupby": "4.6.9",
 		"@types/lodash.merge": "4.6.9",
 		"@types/lodash.set": "4.3.9",
 		"@types/lodash.upperfirst": "4.3.9",
+		"@types/minimist": "^1.2.5",
 		"@types/node": "^22.13.10",
+		"@types/qs": "6.9.18",
 		"typescript": "5.6.3"
 	}
 }

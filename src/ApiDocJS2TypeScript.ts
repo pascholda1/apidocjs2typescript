@@ -18,7 +18,7 @@ import TypeScriptRenderer from './TypeScriptRenderer';
 export default class ApiDocJS2TypeScript {
   private readonly docsPath: string;
   private readonly outputPath: string;
-
+  private readonly copyRequestService: boolean;
   /**
    * @description The Name of the API. Will be used as root directory name
    *
@@ -27,7 +27,9 @@ export default class ApiDocJS2TypeScript {
   private readonly apiName: string;
   private readonly apiActions: ApiAction[];
 
-  constructor(docsPath: string, outputPath: string = 'types') {
+  constructor(docsPath: string, outputPath: string = 'types', copyRequestService = true) {
+    this.copyRequestService = copyRequestService;
+
     const baseDir = process.cwd();
 
     this.docsPath = path.join(baseDir, docsPath);
@@ -35,7 +37,7 @@ export default class ApiDocJS2TypeScript {
 
     const apiProjectFile = path.join(this.docsPath, 'api_project.json');
     const apiProject: ApiProject = JSON.parse(fs.readFileSync(apiProjectFile, {encoding: 'utf-8'}));
-    this.apiName = apiProject.name;
+    this.apiName = (apiProject?.name ?? 'default').replace(/\W/gi, '_');
 
     const apiDataFile = path.join(this.docsPath, 'api_data.json');
     this.apiActions = JSON.parse(fs.readFileSync(apiDataFile, {encoding: 'utf-8'}));
@@ -150,6 +152,13 @@ export default class ApiDocJS2TypeScript {
   }
 
   // generate functions
+  public cleanApiDir() {
+    const apiDir = path.join(this.outputPath, this.apiName);
+    if (fs.existsSync(apiDir)) {
+      fs.rmSync(apiDir, {recursive: true, force: true});
+    }
+  }
+
   public generateRequestModels() {
 
     const files = this.groupedActions;
@@ -256,11 +265,23 @@ export default class ApiDocJS2TypeScript {
     const items = fs.readdirSync(sourceDir);
 
     items.forEach(item => {
+      if (!this.copyRequestService && item === 'RequestService.ts') {
+        return;
+      }
+
       const sourcePath = path.join(sourceDir, item);
       const destPath = path.join(this.outputPath, item);
 
       fs.cpSync(sourcePath, destPath);
     });
+  }
+
+  public generateAll() {
+    this.cleanApiDir();
+    this.generateRequestModels();
+    this.generateResponseModels();
+    this.generateEndpointDefinitions();
+    this.copyStaticClasses();
   }
 
 }

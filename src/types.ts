@@ -1,5 +1,5 @@
 export interface ApiProject {
-  name: string;
+  name?: string;
 }
 
 export interface ApiParam {

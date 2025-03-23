@@ -7,16 +7,17 @@
 		"noUnusedLocals": true,
 		"noUnusedParameters": true,
 		"strict": true,
-		"sourceMap": true,
+		"sourceMap": false,
 		"allowSyntheticDefaultImports": true,
 		"outDir": "dist",
-		"declaration": true
+		"declaration": false
 	},
 	"include": [
 		"src/**/*.ts"
 	],
 	"exclude": [
 		".idea",
-		"node_modules"
+		"node_modules",
+		"static"
 	]
 }

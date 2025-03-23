@@ -1,12 +1,24 @@
 import ApiDocJS2TypeScript from './ApiDocJS2TypeScript';
+import minimist            from 'minimist';
 
-const apidocFolder = process.argv[2];
-if (!apidocFolder) {
-  throw new Error('Must specify apidoc folder: node apidoc2dts.js ../apidoc/');
+interface Params extends minimist.ParsedArgs {
+  docs: string,
+  out: string,
+  'request-service'?: boolean
 }
 
-const generator = new ApiDocJS2TypeScript(apidocFolder, process.argv[3]);
-generator.generateRequestModels();
-generator.generateResponseModels();
-generator.generateEndpointDefinitions();
-generator.copyStaticClasses();
+const {
+        docs,
+        out,
+        'request-service': copyRequestService = true,
+      } = minimist<Params>(process.argv.slice(2));
+if (!docs) {
+  throw new Error('--docs parameter is missing. See documentation for more details');
+}
+
+if (!out) {
+  throw new Error('--out parameter is missing. See documentation for more details');
+}
+
+const generator = new ApiDocJS2TypeScript(docs, out, copyRequestService);
+generator.generateAll();
