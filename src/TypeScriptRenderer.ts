@@ -39,7 +39,8 @@ export default class TypeScriptRenderer {
     const optionalModifier = TypeHelper.getOptionalModifier(apiParam);
     const docs = TypeScriptRenderer.renderJSDocsParameterComment(apiParam);
 
-    return `${docs}
+    return `
+    ${docs}
     ${fieldName}${optionalModifier}:${type}`;
   }
 
@@ -53,19 +54,19 @@ export default class TypeScriptRenderer {
     });
   }
 
-  public static renderJSDocsInterfaceComment(apiHandler: ApiAction): string {
+  public static renderJSDocsActionComment(apiAction: ApiAction): string {
     let jsDocParams: JsDocParams = {};
-    if (apiHandler.deprecated) {
-      if (typeof apiHandler.deprecated === 'boolean') {
+    if (apiAction.deprecated) {
+      if (typeof apiAction.deprecated === 'boolean') {
         jsDocParams['@deprecated'] = null;
       } else {
-        const {content} = apiHandler.deprecated;
+        const {content} = apiAction.deprecated;
         jsDocParams['@deprecated'] = content;
       }
     }
 
-    if (apiHandler.description) {
-      jsDocParams['@description'] = apiHandler.description;
+    if (apiAction.description) {
+      jsDocParams['@description'] = apiAction.description;
     }
 
     return TypeScriptRenderer.renderJsDocComment(jsDocParams);
@@ -85,8 +86,20 @@ export default class TypeScriptRenderer {
     }
 
     return `/**
-     ${params.join('\n')}
-     */
-    `;
+${params.join('\n')}
+ */`;
+  }
+
+  public static renderTypeImport(type: string, from: string) {
+    return `import type {${type}} from '${from}'`;
+  }
+
+  public static renderEndpointDefinition(apiAction: ApiAction, requestInterfaceName: string, responseInterfaceName: string) {
+    return `
+${TypeScriptRenderer.renderJSDocsActionComment(apiAction)}
+export const ${apiAction.name}Endpoint = new Endpoint<${requestInterfaceName}, ${responseInterfaceName}>(
+  new URL('${apiAction.url}'),
+  '${apiAction.type.toUpperCase()}'
+);`;
   }
 }
