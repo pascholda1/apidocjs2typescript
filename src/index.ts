@@ -21,4 +21,6 @@ if (!out) {
 }
 
 const generator = new ApiDocJS2TypeScript(docs, out, copyRequestService);
-generator.generateAll();
+generator
+    .loadData()
+    .then(generator => generator.generateAll());

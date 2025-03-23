@@ -6,7 +6,6 @@ import util from 'util';
 import _set from 'lodash.set';
 
 import {
-  // ApiFields,
   ApiAction,
   ApiFields,
   ApiParam,
@@ -24,24 +23,51 @@ export default class ApiDocJS2TypeScript {
    *
    * @private
    */
-  private readonly apiName: string;
-  private readonly apiActions: ApiAction[];
+  private apiName: string = 'default';
+  private apiActions: ApiAction[] = [];
 
   constructor(docsPath: string, outputPath: string = 'types', copyRequestService = true) {
     this.copyRequestService = copyRequestService;
-
     const baseDir = process.cwd();
-
-    this.docsPath = path.join(baseDir, docsPath);
     this.outputPath = path.join(baseDir, outputPath);
+    this.docsPath = this.isWebUrl(docsPath) ? docsPath : path.join(baseDir, docsPath);
 
+  }
+
+  private isWebUrl(url: string) {
+    return !!/^http(s)?:\/\//.exec(url);
+  }
+
+  public async loadData() {
     const apiProjectFile = path.join(this.docsPath, 'api_project.json');
-    const apiProject: ApiProject = JSON.parse(fs.readFileSync(apiProjectFile, {encoding: 'utf-8'}));
-    this.apiName = (apiProject?.name ?? 'default').replace(/\W/gi, '_');
-
     const apiDataFile = path.join(this.docsPath, 'api_data.json');
-    this.apiActions = JSON.parse(fs.readFileSync(apiDataFile, {encoding: 'utf-8'}));
 
+    if (this.isWebUrl(this.docsPath)) {
+
+      const apiProjectResponse = await fetch(apiProjectFile);
+      const apiProject: ApiProject = await apiProjectResponse.json();
+
+      if (apiProject?.name) {
+        this.setApiName(apiProject.name);
+      }
+
+      const apiDataResponse = await fetch(apiDataFile);
+      this.apiActions = await apiDataResponse.json();
+
+    } else {
+      const apiProject: ApiProject = JSON.parse(fs.readFileSync(apiProjectFile, {encoding: 'utf-8'}));
+      if (apiProject?.name) {
+        this.setApiName(apiProject.name);
+      }
+
+      this.apiActions = JSON.parse(fs.readFileSync(apiDataFile, {encoding: 'utf-8'}));
+    }
+
+    return this;
+  }
+
+  private setApiName(value: string) {
+    this.apiName = value.replace(/\W/gi, '_');
   }
 
   // getters
@@ -157,6 +183,8 @@ export default class ApiDocJS2TypeScript {
     if (fs.existsSync(apiDir)) {
       fs.rmSync(apiDir, {recursive: true, force: true});
     }
+
+    return this;
   }
 
   public generateRequestModels() {
@@ -211,6 +239,7 @@ export default class ApiDocJS2TypeScript {
 
     }
 
+    return this;
   }
 
   public generateResponseModels() {
@@ -233,6 +262,8 @@ export default class ApiDocJS2TypeScript {
           renderedActions.join('\n'),
       );
     }
+
+    return this;
   }
 
   public generateEndpointDefinitions() {
@@ -255,6 +286,8 @@ export default class ApiDocJS2TypeScript {
           [...imports, ...renderedEndpoints].join('\n'),
       );
     }
+
+    return this;
   }
 
   public copyStaticClasses() {
@@ -274,14 +307,16 @@ export default class ApiDocJS2TypeScript {
 
       fs.cpSync(sourcePath, destPath);
     });
+
+    return this;
   }
 
   public generateAll() {
-    this.cleanApiDir();
-    this.generateRequestModels();
-    this.generateResponseModels();
-    this.generateEndpointDefinitions();
-    this.copyStaticClasses();
+    return this.cleanApiDir()
+        .generateRequestModels()
+        .generateResponseModels()
+        .generateEndpointDefinitions()
+        .copyStaticClasses();
   }
 
 }
