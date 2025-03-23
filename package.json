@@ -12,7 +12,7 @@
 	"license": "MIT",
 	"main": "dist/index.js",
 	"bin": {
-		"apidoc2typescript": "dist/index.js"
+		"apidocjs2typescript": "dist/index.js"
 	},
 	"scripts": {
 		"build": "./node_modules/.bin/tsc",
