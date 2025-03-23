@@ -34,12 +34,12 @@ Make sure you are using [APIDOC](http://apidocjs.com) correctly
 ### Define the Response:
 
 - use `@apiSuccess` to define the response
-- (NYI) use `@apiError` to define the response
+- **(NYI)** use `@apiError` to define an error response
 
 ### Build the documentation and run the generator:
 
 ```shell
-apidocjs2typescript --docs=./path/to/documentation --out=./output/path [--no-request-service]
+npx apidocjs2typescript --docs=./path/to/documentation --out=./output/path [--no-request-service]
 ```
 
 Now you can use the included RequestService with the generated endpoint definitions to make API calls.\
@@ -83,6 +83,13 @@ The Documentation:
  * @apiBody {String} nested.value1 dot notation nesting
  * @apiBody {Object} nested[value2] bracket notation nesting
  * @apiBody {String} nested[value2].deepValue mixed notation nesting
+ *
+ * @apiSuccess {Number} [no]   a number parameter
+ *
+ * @apiSuccess {Object} nested a nested field
+ * @apiSuccess {String} nested.value1 dot notation nesting
+ * @apiSuccess {Object} nested[value2] bracket notation nesting
+ * @apiSuccess {String} nested[value2].deepValue mixed notation nesting
  */
 ```
 
@@ -143,6 +150,38 @@ export interface SampleActionRequest {
 }
 ```
 
+The generated Response Interface:
+
+```typescript
+export interface SampleActionResponse {
+  /**
+   * @description <p>a number parameter</p>
+   */
+  no: number;
+
+  /**
+   * @description <p>a nested field</p>
+   */
+  nested: {
+    /**
+     * @description <p>dot notation nesting</p>
+     */
+    value1: string
+
+    /**
+     * @description <p>bracket notation nesting</p>
+     */
+    value2: {
+
+      /**
+       * @description <p>mixed notation nesting</p>
+       */
+      deepValue?: string
+    }
+  };
+}
+```
+
 The generated Endpoint:
 
 ```typescript
@@ -150,18 +189,6 @@ export const SampleActionEndpoint = new Endpoint<PostSingleRequest, unknown>(
     new URL('/your/endpoint/:pageId.json'),
     'POST'
 );
-```
-
-The generated Response Interface:
-
-```typescript
-// TODO
-```
-
-The generated Error Interface:
-
-```typescript
-// TODO (NYI)
 ```
 
 Making an API Call:
