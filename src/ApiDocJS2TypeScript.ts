@@ -84,7 +84,7 @@ export default class ApiDocJS2TypeScript {
       return [];
     }
 
-    return this.getParameters(action.header?.fields);
+    return this.getFlatParams(action.header?.fields);
   }
 
   private getRequestPathParameters(action: ApiAction): ApiParam[] {
@@ -93,28 +93,25 @@ export default class ApiDocJS2TypeScript {
     }
 
     const url = action.url;
-    return this.getParameters(action.parameter.fields)
-        .filter(parameter => url.includes(`:${parameter.field}`));
+    return this.getFlatParams(action.parameter.fields)
+        .filter(parameter => {
+          const isPresent = url.includes(`:${parameter.field}`);
+          if (!isPresent) {
+            console.error(`Documentation Error: Path parameter ${parameter.field} is not present the action URL (${url}). Parameter will be skipped!`);
+          }
+        });
   }
 
   private getRequestQueryParameters(action: ApiAction): ApiParam[] {
-    if (!action.parameter?.fields) {
-      return [];
-    }
-
-    const pathParameters = this.getRequestPathParameters(action);
-    return this.getParameters(action.parameter.fields)
-        .filter(parameter => !pathParameters.find(pathParam => pathParam.field === parameter.field));
+    return action.query ?? [];
   }
 
-  private getParameters(apiFields: ApiFields): ApiParam[] {
+  private getFlatParams(apiFields: ApiFields): ApiParam[] {
     return Object.values(apiFields).flat();
   }
 
   private getRequestBodyParameters(action: ApiAction): ApiParam[] {
-    return [
-      ...action.body ?? [],
-    ];
+    return action.body ?? [];
   }
 
   private get groupedActions(): Record<string, ApiAction[]> {
@@ -253,7 +250,7 @@ export default class ApiDocJS2TypeScript {
               return `export type ${apiAction.name}Response = unknown`;
             }
 
-            return TypeScriptRenderer.renderInterface(this.getResponseInterfaceName(apiAction), ApiDocJS2TypeScript.nestedFields(this.getParameters(apiAction.success.fields)));
+            return TypeScriptRenderer.renderInterface(this.getResponseInterfaceName(apiAction), ApiDocJS2TypeScript.nestedFields(this.getFlatParams(apiAction.success.fields)));
 
           });
 

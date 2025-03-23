@@ -29,6 +29,7 @@ export interface ApiAction {
   parameter?: ApiFieldGroup;
   header?: ApiFieldGroup;
   body?: ApiParam[];
+  query?: ApiParam[];
   success?: ApiFieldGroup;
 }
 
