@@ -1,5 +1,10 @@
 # ApiDocJS2TypeScript
 
+> ⚠️ **Note:**  
+> Just so you know: **ApiDocJS is no longer actively maintained**.  
+> If you're starting a new web service, **OpenAPI** is probably the better choice.  
+> However, if you're already using ApiDocJS, this package can help you connect your **TypeScript-based frontend** to your API with ease.
+
 Generate a ready-to-use API client based on an [ApiDocJs](http://apidocjs.com) documentation.
 
 ## 🔧 Installation
@@ -70,10 +75,10 @@ The Documentation:
  * @apiParam {String} pageId     a path param
  * @apiQuery {String} search    a query param
  * @apiBody {String[]} product          list of products
- * @apiBody {String=de,en} [language]   
- *               
+ * @apiBody {String=de,en} [language]
+ *
  * @apiBody {Number} [no]   a number parameter
- *               
+ *
  * @apiBody {Object} nested a nested field
  * @apiBody {String} nested.value1 dot notation nesting
  * @apiBody {Object} nested[value2] bracket notation nesting
