@@ -5,10 +5,7 @@
 > If you're starting a new web service, **OpenAPI** is probably the better choice.  
 > However, if you're already using ApiDocJS, this package can help you connect your **TypeScript-based frontend** to your API with ease.
 
-> **🧾 Version Info:** Version 1.0 of this package is compatible with older versions of ApiDoc (tested with v0.29.0), which can still be built using Grunt.  
-> This is due to my specific need to support that version.  
-> **Support for newer ApiDoc versions is planned for v2 – coming soon.**
-
+> **🧾 Version Info:** Works with ApiDoc Version <= 0.29.0 and >= 1.2.0. All versions in between do not export a data.json file, which is required by the generator
 
 Generate a ready-to-use API client based on an [ApiDocJs](http://apidocjs.com) documentation.
 
@@ -43,8 +40,16 @@ Make sure you are using [APIDOC](http://apidocjs.com) correctly
 
 ### Build the documentation and run the generator:
 
+Generate your ApiDoc documentation. Make sure you are using the `--write-json` option.
+
 ```shell
-npx apidocjs2typescript --docs=./path/to/documentation --out=./output/path [--no-request-service]
+apidoc -i input/path/ -o output/path --write-json 
+```
+
+Run the Generator:
+
+```shell
+npx apidocjs2typescript --docs-json=./path/to/documentation/assets/api-data.json --api-name=my-api-name --out=./output/path [--no-request-service]
 ```
 
 Now you can use the included RequestService with the generated endpoint definitions to make API calls.\
@@ -56,6 +61,7 @@ See the [Example](#example) below for more details.
 |----------------------|----------|----------------------------------------------------------------------------------------------------------------------------------|
 | --docs               | ✅        | Root directory of the generated ApiDocJS documentation. <br/>Can be a local path or an accessible URL starting with `http(s)://` |
 | --out                | ✅        | Output directory. Must be a local path.                                                                                          |
+| --api-name           | ❌        | The subdirectory name to encapsulate the types of the current API. <br/>defaults to `default`                                    |
 | --no-request-service | ❌        | If set, the `RequestService` will not be copied to your project. Useful if you want to implement your own.                       |
 
 You can generate multiple APIs for the same project by running the script multiple times with different ApiDocJS documentations, using the same output directory.
