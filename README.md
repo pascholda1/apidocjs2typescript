@@ -49,7 +49,7 @@ apidoc -i input/path/ -o output/path --write-json
 Run the Generator:
 
 ```shell
-npx apidocjs2typescript --docs-json=./path/to/documentation/assets/api-data.json --api-name=my-api-name --out=./output/path [--no-request-service]
+apidocjs2typescript --docs-json=./path/to/documentation/assets/api-data.json --api-name=my-api-name --out=./output/path [--no-request-service]
 ```
 
 Now you can use the included RequestService with the generated endpoint definitions to make API calls.\
