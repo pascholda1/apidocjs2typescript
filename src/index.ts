@@ -4,14 +4,16 @@ import ApiDocJS2TypeScript from './ApiDocJS2TypeScript';
 import minimist            from 'minimist';
 
 interface Params extends minimist.ParsedArgs {
-  docs: string,
+  'docs-json': string,
   out: string,
+  'api-name'?: string
   'request-service'?: boolean
 }
 
 const {
-        docs,
+        'docs-json':docs,
         out,
+        'api-name': apiName                   = 'default',
         'request-service': copyRequestService = true,
       } = minimist<Params>(process.argv.slice(2));
 if (!docs) {
@@ -22,7 +24,7 @@ if (!out) {
   throw new Error('--out parameter is missing. See documentation for more details');
 }
 
-const generator = new ApiDocJS2TypeScript(docs, out, copyRequestService);
+const generator = new ApiDocJS2TypeScript(docs, apiName, out, copyRequestService);
 generator
     .loadData()
     .then(generator => generator.generateAll());

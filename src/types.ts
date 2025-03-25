@@ -1,11 +1,3 @@
-export interface ApiProject {
-  name?: string;
-  generator?: {
-    name: string,
-    version: string
-  };
-}
-
 export interface ApiParam {
   group: string;
   type?: string;
@@ -39,15 +31,6 @@ export interface ApiAction {
 
 export type ParamGroupName = string;
 export type FieldName = string;
-/**
- * @description represents a single endpoint params
- */
-export type ApiParamGroups = Record<ParamGroupName, ApiParams>
-
-/**
- * @description represents param group of a single endpoint (header, path, query, body)
- */
-export type ApiParams = Record<FieldName, ApiParam>
 
 // nested fields
 export interface NestedApiParam extends ApiParam {

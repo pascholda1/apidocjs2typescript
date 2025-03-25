@@ -9,13 +9,12 @@ import {
   ApiAction,
   ApiFields,
   ApiParam,
-  ApiProject,
   NestedApiParams,
 }                         from './types';
 import TypeScriptRenderer from './TypeScriptRenderer';
 
 export default class ApiDocJS2TypeScript {
-  private readonly docsPath: string;
+  private readonly docsJsonFile: string;
   private readonly outputPath: string;
   private readonly copyRequestService: boolean;
   /**
@@ -26,12 +25,12 @@ export default class ApiDocJS2TypeScript {
   private apiName: string = 'default';
   private apiActions: ApiAction[] = [];
 
-  constructor(docsPath: string, outputPath: string = 'types', copyRequestService = true) {
+  constructor(docsJsonFile: string, apiName: string, outputPath: string = 'types', copyRequestService = true) {
     this.copyRequestService = copyRequestService;
     const baseDir = process.cwd();
     this.outputPath = path.join(baseDir, outputPath);
-    this.docsPath = this.isWebUrl(docsPath) ? docsPath : path.join(baseDir, docsPath);
-
+    this.docsJsonFile = this.isWebUrl(docsJsonFile) ? docsJsonFile : path.join(baseDir, docsJsonFile);
+    this.setApiName(apiName);
   }
 
   private isWebUrl(url: string) {
@@ -39,25 +38,13 @@ export default class ApiDocJS2TypeScript {
   }
 
   public async loadData() {
-    const apiProjectFile = path.join(this.docsPath, 'api_project.json');
-    const apiDataFile = path.join(this.docsPath, 'api_data.json');
-    let apiProject: ApiProject | undefined;
-    if (this.isWebUrl(this.docsPath)) {
-
-      const apiProjectResponse = await fetch(apiProjectFile);
-      apiProject = await apiProjectResponse.json();
-
-      const apiDataResponse = await fetch(apiDataFile);
+    if (this.isWebUrl(this.docsJsonFile)) {
+      const apiDataResponse = await fetch(this.docsJsonFile);
       this.apiActions = await apiDataResponse.json();
 
     } else {
-      apiProject = JSON.parse(fs.readFileSync(apiProjectFile, {encoding: 'utf-8'}));
+      this.apiActions = JSON.parse(fs.readFileSync(this.docsJsonFile, {encoding: 'utf-8'}));
 
-      this.apiActions = JSON.parse(fs.readFileSync(apiDataFile, {encoding: 'utf-8'}));
-    }
-
-    if (apiProject?.name) {
-      this.setApiName(apiProject.name);
     }
 
     return this;
