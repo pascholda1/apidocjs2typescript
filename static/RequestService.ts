@@ -10,13 +10,12 @@ interface BaseRequest {
 }
 
 export class RequestService<RequestData extends BaseRequest, ResponseData = unknown> {
-  public baseUrl: string = window.location.origin;
+  private readonly baseUrl: string;
   private readonly endpoint: Endpoint<RequestData, ResponseData>;
 
-  constructor(endpoint: Endpoint<RequestData, ResponseData>, baseUrl?: string) {
-    if (baseUrl) {
-      this.baseUrl = baseUrl;
-    }
+  constructor(endpoint: Endpoint<RequestData, ResponseData>, baseUrl: string) {
+
+    this.baseUrl = baseUrl;
 
     this.endpoint = endpoint;
   }
