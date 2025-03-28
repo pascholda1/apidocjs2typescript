@@ -83,6 +83,8 @@ export default class ApiDocJS2TypeScript {
           if (!isPresent) {
             console.error(`Documentation Error: Path parameter ${parameter.field} is not present the action URL (${url}). Parameter will be skipped!`);
           }
+
+          return isPresent;
         });
   }
 
