@@ -17,8 +17,9 @@
 	"scripts": {
 		"build": "./node_modules/.bin/tsc",
 		"prepare": "npm run build",
-		"setup-test": "node ./dist/index.js --docs-json=./test/api-data.json --out=./test/api",
-		"run": "node ./dist/index.js --docs-json=./dummyData/api-data.json --api-name=v-1-2-0 --out=./dummyData/api"
+		"preversion": "npm run build && npm test",
+		"test": "jest",
+		"prepublishOnly": "npm run build && npm test"
 	},
 	"repository": {
 		"type": "git",
