@@ -209,30 +209,30 @@ import {RequestService}       from './output/path/RequestService';
 import {SampleActionEndpoint} from './output/path/ApiName/endpoints/SampleActionEndpoint';
 import {RequestServiceError}  from './output/path/RequestServiceError';
 
-new RequestService(SampleActionEndpoint)
-    .sendRequest({
-      header: {
-        'Content-Type': 'application/json',
-      },
-      path: {
-        pageId: 'sample',
-      },
-      query: {
-        search: 'sample',
-      },
-      body: {
-        product: ['p1', 'p2'],
-        no: 1,
-        nested: {
-          value1: 'value1',
-          value2: {
-            deepValue: 'deeeep',
+new RequestService(SampleActionEndpoint, process.env.baseURL)
+        .sendRequest({
+          header: {
+            'Content-Type': 'application/json',
           },
-        },
-      },
-    })
-    .then(result => console.log(result)) // result is of type SampleActionResponse
-    .catch((error: RequestServiceError) => console.error(error));
+          path: {
+            pageId: 'sample',
+          },
+          query: {
+            search: 'sample',
+          },
+          body: {
+            product: ['p1', 'p2'],
+            no: 1,
+            nested: {
+              value1: 'value1',
+              value2: {
+                deepValue: 'deeeep',
+              },
+            },
+          },
+        })
+        .then(result => console.log(result)) // result is of type SampleActionResponse
+        .catch((error: RequestServiceError) => console.error(error));
 ```
 
 ## 🔄 Type Mapping
