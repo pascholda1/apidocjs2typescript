@@ -206,7 +206,7 @@ Making an API Call:
 
 ```typescript
 import {RequestService}       from './output/path/RequestService';
-import {SampleActionEndpoint} from './output/path/ApiName/endpoints/Secure.Files';
+import {SampleActionEndpoint} from './output/path/ApiName/endpoints/SampleActionEndpoint';
 import {RequestServiceError}  from './output/path/RequestServiceError';
 
 new RequestService(SampleActionEndpoint)
@@ -231,7 +231,7 @@ new RequestService(SampleActionEndpoint)
         },
       },
     })
-    .then(result => console.log(result))
+    .then(result => console.log(result)) // result is of type SampleActionResponse
     .catch((error: RequestServiceError) => console.error(error));
 ```
 
