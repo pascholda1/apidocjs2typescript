@@ -10,9 +10,14 @@ interface BaseRequest {
 }
 
 export class RequestService<RequestData extends BaseRequest, ResponseData = unknown> {
+  public baseUrl: string = window.location.origin;
   private readonly endpoint: Endpoint<RequestData, ResponseData>;
 
-  constructor(endpoint: Endpoint<RequestData, ResponseData>) {
+  constructor(endpoint: Endpoint<RequestData, ResponseData>, baseUrl?: string) {
+    if (baseUrl) {
+      this.baseUrl = baseUrl;
+    }
+
     this.endpoint = endpoint;
   }
 
@@ -28,24 +33,25 @@ export class RequestService<RequestData extends BaseRequest, ResponseData = unkn
               xhr.setRequestHeader(name, value);
             });
 
-        const url = this.endpoint.url;
+        const url = new URL(this.baseUrl);
+        url.pathname = this.endpoint.path;
 
         // set path params to URL
         const {path = {}} = data;
         Object.entries(path)
             .forEach(([name, value]) => {
-              this.endpoint.url.pathname = this.endpoint.url.pathname.replace(`:${name}`, value);
+              url.pathname = this.endpoint.path.replace(`:${name}`, value);
             });
 
         // set query params
         const {query} = data;
         if (query) {
-          this.endpoint.url.search = qs.stringify(query);
+          url.search = qs.stringify(query);
         }
 
         xhr.open(this.endpoint.method, url, true);
       } else {
-        xhr.open(this.endpoint.method, this.endpoint.url, true);
+        xhr.open(this.endpoint.method, this.endpoint.path, true);
       }
 
       xhr.onload = () => {

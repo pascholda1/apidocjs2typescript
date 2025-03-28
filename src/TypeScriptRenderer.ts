@@ -98,7 +98,7 @@ ${params.join('\n')}
     return `
 ${TypeScriptRenderer.renderJSDocsActionComment(apiAction)}
 export const ${apiAction.name}Endpoint = new Endpoint<${requestInterfaceName}, ${responseInterfaceName}>(
-  new URL('${apiAction.url}'),
+  '${apiAction.url}',
   '${apiAction.type.toUpperCase()}'
 );`;
   }
