@@ -1,7 +1,7 @@
 export type Method = 'GET' | 'POST'
 
 export default class Endpoint<RequestData = unknown, ResponseData = unknown> {
-  readonly url: string;
+  readonly path: string;
   readonly method: Method;
 
   // @ts-expect-error - required for Type Inference
@@ -10,7 +10,7 @@ export default class Endpoint<RequestData = unknown, ResponseData = unknown> {
   responseData: ResponseData;
 
   constructor(path: string, method: Method) {
-    this.url = path;
+    this.path = path;
     this.method = method;
   }
 }
