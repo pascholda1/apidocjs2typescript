@@ -1,6 +1,6 @@
 import Endpoint              from './Endpoint';
 import {RequestServiceError} from './RequestServiceError';
-import qs                    from 'qs';
+import * as qs               from 'qs';
 
 interface BaseRequest {
   header?: object;

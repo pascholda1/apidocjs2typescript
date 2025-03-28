@@ -1,4 +1,4 @@
-export type Method = 'GET' | 'POST'
+export type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 
 export default class Endpoint<RequestData = unknown, ResponseData = unknown> {
   readonly path: string;
