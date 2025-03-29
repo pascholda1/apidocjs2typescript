@@ -8,7 +8,7 @@
 		"code generator"
 	],
 	"author": "Simon Paschold (https://github.com/pascholda1)",
-	"version": "1.1.6",
+	"version": "1.1.7",
 	"license": "MIT",
 	"main": "dist/index.js",
 	"bin": {
