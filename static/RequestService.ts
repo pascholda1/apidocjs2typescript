@@ -32,8 +32,7 @@ export class RequestService<RequestData extends BaseRequest, ResponseData = unkn
               xhr.setRequestHeader(name, value);
             });
 
-        const url = new URL(this.baseUrl);
-        url.pathname = this.endpoint.path;
+        const url = new URL(this.baseUrl+this.endpoint.path);
 
         // set path params to URL
         const {path = {}} = data;
