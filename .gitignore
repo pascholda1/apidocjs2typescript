@@ -3,3 +3,7 @@ yarn.lock
 
 dist
 dummyData
+
+test/api
+
+.DS_Store

@@ -1,6 +1,6 @@
 import Endpoint              from './Endpoint';
 import {RequestServiceError} from './RequestServiceError';
-import qs                    from 'qs';
+import * as qs               from 'qs';
 
 interface BaseRequest {
   header?: object;
@@ -10,13 +10,12 @@ interface BaseRequest {
 }
 
 export class RequestService<RequestData extends BaseRequest, ResponseData = unknown> {
-  public baseUrl: string = window.location.origin;
+  private readonly baseUrl: string;
   private readonly endpoint: Endpoint<RequestData, ResponseData>;
 
-  constructor(endpoint: Endpoint<RequestData, ResponseData>, baseUrl?: string) {
-    if (baseUrl) {
-      this.baseUrl = baseUrl;
-    }
+  constructor(endpoint: Endpoint<RequestData, ResponseData>, baseUrl: string) {
+
+    this.baseUrl = baseUrl;
 
     this.endpoint = endpoint;
   }
@@ -33,8 +32,7 @@ export class RequestService<RequestData extends BaseRequest, ResponseData = unkn
               xhr.setRequestHeader(name, value);
             });
 
-        const url = new URL(this.baseUrl);
-        url.pathname = this.endpoint.path;
+        const url = new URL(this.baseUrl+this.endpoint.path);
 
         // set path params to URL
         const {path = {}} = data;
