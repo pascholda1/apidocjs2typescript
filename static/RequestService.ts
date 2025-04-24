@@ -1,6 +1,6 @@
-import Endpoint              from './Endpoint';
-import {RequestServiceError} from './RequestServiceError';
-import * as qs               from 'qs';
+import Endpoint                             from './Endpoint';
+import {RequestServiceError}                from './RequestServiceError';
+import {BooleanOptional, IStringifyOptions, stringify} from 'qs';
 
 interface BaseRequest {
   header?: object;
@@ -12,6 +12,7 @@ interface BaseRequest {
 export class RequestService<RequestData extends BaseRequest, ResponseData = unknown> {
   private readonly baseUrl: string;
   private readonly endpoint: Endpoint<RequestData, ResponseData>;
+  public qsStringifyOptions: undefined | IStringifyOptions<BooleanOptional>;
 
   constructor(endpoint: Endpoint<RequestData, ResponseData>, baseUrl: string) {
 
@@ -44,7 +45,7 @@ export class RequestService<RequestData extends BaseRequest, ResponseData = unkn
         // set query params
         const {query} = data;
         if (query) {
-          url.search = qs.stringify(query);
+          url.search = stringify(query, this.qsStringifyOptions);
         }
 
         xhr.open(this.endpoint.method, url, true);
