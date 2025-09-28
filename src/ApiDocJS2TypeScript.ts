@@ -10,8 +10,9 @@ import {
   ApiFields,
   ApiParam,
   NestedApiParams,
-}                         from './types';
-import TypeScriptRenderer from './TypeScriptRenderer';
+}                             from './types';
+import TypeScriptRenderer     from './TypeScriptRenderer';
+import {toValidInterfaceName} from './helper/FormatHelper';
 
 export default class ApiDocJS2TypeScript {
   private readonly docsJsonFile: string;
@@ -56,11 +57,11 @@ export default class ApiDocJS2TypeScript {
 
   // getters
   private getRequestInterfaceName(apiAction: ApiAction) {
-    return apiAction.name + 'Request';
+    return toValidInterfaceName(apiAction.name) + 'Request';
   }
 
   private getResponseInterfaceName(apiAction: ApiAction) {
-    return apiAction.name + 'Response';
+    return toValidInterfaceName(apiAction.name) + 'Response';
   }
 
   private getRequestHeaderParameters(action: ApiAction): ApiParam[] {
