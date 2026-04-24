@@ -41,6 +41,7 @@ CLI args (index.ts)
 | `src/types.ts` | TypeScript types mirroring the ApiDocJS JSON schema |
 | `src/helper/TypeHelper.ts` | Maps ApiDocJS type strings → TypeScript types (including arrays, unions from `allowedValues`, custom string types) |
 | `src/helper/FormatHelper.ts` | Converts group/action names to PascalCase interface names |
+| `src/helper/TypeCollector.ts` | Accumulates extracted named types during rendering; handles dedup and conflict resolution |
 | `static/Endpoint.ts` | Generic `Endpoint<RequestData, ResponseData>` class copied to output |
 | `static/RequestService.ts` | XHR-based HTTP client copied to output |
 | `static/RequestServiceError.ts` | Custom error class copied to output |
@@ -52,13 +53,16 @@ For a given API, the generator produces:
 ```
 <out>/
   <apiName>/
-    requests/<Group>.ts       # Request interfaces (header/path/query/body params)
-    responses/<Group>.ts      # Response interfaces
-    endpoints/<Group>.ts      # Endpoint instances with type generics
-  RequestService.ts           # XHR HTTP client
-  Endpoint.ts                 # Generic endpoint class
-  RequestServiceError.ts      # Error class
+    requests/<Group>.ts                   # Request interfaces (imports from types/)
+    requests/types/request-types.ts       # All extracted request named types (shared across groups)
+    responses/<Group>.ts                  # Response interfaces + extracted types (per-file)
+    endpoints/<Group>.ts                  # Endpoint instances with type generics
+  RequestService.ts                       # XHR HTTP client
+  Endpoint.ts                             # Generic endpoint class
+  RequestServiceError.ts                  # Error class
 ```
+
+Request types are extracted into `requests/types/request-types.ts` using a single shared `TypeCollector` across all request groups. Each `requests/<Group>.ts` file imports only the types it references. With `--inline-types`, no types file is written and all types are inlined directly into the interface.
 
 ### Parameter Nesting
 

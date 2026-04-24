@@ -108,6 +108,8 @@ The Documentation:
 
 The generated Request Interface:
 
+`requests/types/request-types.ts` (shared across all groups):
+
 ```typescript
 export type ContentType = 'application/x-www-form-urlencoded' | 'multipart/formdata' | 'application/json';
 
@@ -162,6 +164,12 @@ export type SampleActionRequestBody = {
    */
   nested: Nested
 };
+```
+
+`requests/Samples.ts`:
+
+```typescript
+import type {ContentType, SampleActionRequestHeader, SampleActionRequestPath, SampleActionRequestQuery, Value2, Nested, Language, SampleActionRequestBody} from './types/request-types';
 
 /**
  * @deprecated

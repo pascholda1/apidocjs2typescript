@@ -23,13 +23,21 @@ export default class TypeScriptRenderer {
   private static renderNestedParams(fields: NestedApiParams, collector: TypeCollector, parentTypeName: string, depth = 0, topLevelNoDedup = false): string {
     let renderedFields: string[] = [];
 
+    const forceUnique = topLevelNoDedup && depth === 0;
+
     for (const name in fields) {
       const field = fields[name];
       if (field.children) {
         const childTypeName = toValidInterfaceName(name);
         const isArray = field.type && TypeHelper.isArrayType(field.type);
-        const forceUnique = topLevelNoDedup && depth === 0;
-        const childBody = TypeScriptRenderer.renderNestedParams(field.children, collector, childTypeName, depth + 1);
+        // Use the predicted resolved name as parentTypeName so that conflict
+        // resolution at deeper levels produces unique, interface-scoped names.
+        // For forceUnique parents the resolved name is deterministic; for
+        // non-forceUnique parents childTypeName is the best available guess.
+        const predictedChildName = forceUnique
+            ? `${parentTypeName}${childTypeName}`
+            : childTypeName;
+        const childBody = TypeScriptRenderer.renderNestedParams(field.children, collector, predictedChildName, depth + 1, topLevelNoDedup);
         const resolvedName = collector.register(childTypeName, childBody, parentTypeName, false, forceUnique);
         const optionalModifier = TypeHelper.getOptionalModifier(field);
         const docs = TypeScriptRenderer.renderJSDocsParameterComment(field);
@@ -37,14 +45,14 @@ export default class TypeScriptRenderer {
         renderedFields.push(`${docs}
         ${name}${optionalModifier}: ${resolvedName}${array}`);
       } else {
-        renderedFields.push(TypeScriptRenderer.renderApiParam(name, field, collector, parentTypeName));
+        renderedFields.push(TypeScriptRenderer.renderApiParam(name, field, collector, parentTypeName, forceUnique));
       }
     }
 
     return renderedFields.join('\n');
   }
 
-  private static renderApiParam(name: string, apiParam: ApiParam, collector: TypeCollector, parentTypeName: string) {
+  private static renderApiParam(name: string, apiParam: ApiParam, collector: TypeCollector, parentTypeName: string, forceUnique = false) {
     let type: string;
     if (apiParam.allowedValues && apiParam.type && TypeHelper.isStringType(apiParam.type)) {
       const unionBody = apiParam.allowedValues
@@ -55,7 +63,7 @@ export default class TypeScriptRenderer {
             return `'${v}'`;
           })
           .join(' | ');
-      type = collector.register(toValidInterfaceName(name), unionBody, parentTypeName, true);
+      type = collector.register(toValidInterfaceName(name), unionBody, parentTypeName, true, forceUnique);
     } else {
       type = apiParam.type ? TypeHelper.getTsType(apiParam) : 'any';
     }

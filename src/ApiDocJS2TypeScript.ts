@@ -177,9 +177,10 @@ export default class ApiDocJS2TypeScript {
   public generateRequestModels() {
 
     const files = this.groupedActions;
+    const sharedCollector = new TypeCollector(this.inlineTypes);
+    const fileContents: Record<string, string> = {};
 
     for (const filename in files) {
-      const fileCollector = new TypeCollector(this.inlineTypes);
       const renderedActions = files[filename]
           .map(apiAction => {
             const headerParams = this.getRequestHeaderParameters(apiAction);
@@ -216,16 +217,33 @@ export default class ApiDocJS2TypeScript {
 
             return [
               TypeScriptRenderer.renderJSDocsActionComment(apiAction),
-              TypeScriptRenderer.renderInterface(this.getRequestInterfaceName(apiAction), requestParams, fileCollector, true),
+              TypeScriptRenderer.renderInterface(this.getRequestInterfaceName(apiAction), requestParams, sharedCollector, true),
             ].join('\n');
           });
 
-      const typeDefs = fileCollector.render();
+      fileContents[filename] = renderedActions.join('\n');
+    }
+
+    const typeDefs = sharedCollector.render();
+
+    if (typeDefs) {
+      this.writeOutputFile(
+          path.join(this.outputPath, this.apiName, 'requests', 'types/request-types.ts'),
+          typeDefs,
+      );
+    }
+
+    for (const filename in fileContents) {
+      const content = fileContents[filename];
+      const usedTypes = sharedCollector.getUsedTypes(content);
+      const withImport = usedTypes.length > 0
+          ? `import type {${usedTypes.join(', ')}} from './types/request-types';\n\n${content}`
+          : content;
+
       this.writeOutputFile(
           path.join(this.outputPath, this.apiName, 'requests', `${filename}.ts`),
-          typeDefs ? `${typeDefs}\n\n${renderedActions.join('\n')}` : renderedActions.join('\n'),
+          withImport,
       );
-
     }
 
     return this;

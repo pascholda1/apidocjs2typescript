@@ -61,6 +61,8 @@ describe('generator test', () => {
 
     });
 
+    expect(fs.readdirSync(path.join(__dirname, './api/default/requests/types'))).toContain('request-types.ts');
+
     const files = fs.readdirSync(path.join(__dirname, './api'));
     staticFiles.forEach(expectedFilename => {
       expect(files).toContain(expectedFilename);
@@ -90,6 +92,9 @@ describe('generator test', () => {
       });
     });
 
+    const requestTypesResult = compileTsFile(path.join(__dirname, './api/default/requests/types/request-types.ts'));
+    expect(requestTypesResult.status).toBe(0);
+
     staticFiles.forEach(filename => {
       const result = compileTsFile(path.join(__dirname, './api', filename));
 
@@ -114,24 +119,29 @@ describe('generator test', () => {
     });
 
     test('top-level request groups are not merged across interfaces', () => {
-      const content = fs.readFileSync('./test/api/default/requests/City.ts', 'utf-8');
+      const types  = fs.readFileSync('./test/api/default/requests/types/request-types.ts', 'utf-8');
+      const city   = fs.readFileSync('./test/api/default/requests/City.ts', 'utf-8');
 
       // Each group gets its own named type prefixed with the interface name
-      expect(content).toContain('export type CreateCityRequestHeader');
-      expect(content).toContain('export type CreateCityRequestPath');
-      expect(content).toContain('export type CreateCityRequestQuery');
-      expect(content).toContain('export type CreateCityRequestBody');
+      expect(types).toContain('export type CreateCityRequestHeader');
+      expect(types).toContain('export type CreateCityRequestPath');
+      expect(types).toContain('export type CreateCityRequestQuery');
+      expect(types).toContain('export type CreateCityRequestBody');
+
+      // The interface file imports and references those types
+      expect(city).toContain("from './types/request-types'");
+      expect(city).toContain('header?: CreateCityRequestHeader');
 
       // path must not reuse the Header type even though both are empty
-      expect(content).not.toMatch(/path\??: \w*Header/);
+      expect(city).not.toMatch(/path\??: \w*Header/);
     });
 
     test('conflicting type names are prefixed with the parent interface name', () => {
-      const content = fs.readFileSync('./test/api/default/requests/User.ts', 'utf-8');
+      const types = fs.readFileSync('./test/api/default/requests/types/request-types.ts', 'utf-8');
 
       // DeleteUserRequest and GetUserRequest both have a header group but with different shapes
-      expect(content).toContain('export type DeleteUserRequestHeader');
-      expect(content).toContain('export type GetUserRequestHeader');
+      expect(types).toContain('export type DeleteUserRequestHeader');
+      expect(types).toContain('export type GetUserRequestHeader');
     });
 
   });
@@ -169,7 +179,8 @@ describe('generator test', () => {
     test('union types are rendered inline', () => {
       const content = fs.readFileSync(path.join(outDir, 'default/requests/City.ts'), 'utf-8');
 
-      expect(content).toContain("'Aerial' | 'Land' | 'Underwater'");
+      // With --inline-types the union is inlined directly on the field
+      expect(content).toContain("view:'Aerial' | 'Land' | 'Underwater'");
     });
 
     test('nested object types are rendered inline', () => {
@@ -257,6 +268,7 @@ describe('generator test', () => {
           expect(fs.existsSync(path.join(outDir, 'default', typeDir, file))).toBe(true);
         });
       });
+      expect(fs.existsSync(path.join(outDir, 'default/requests/types/request-types.ts'))).toBe(true);
     });
 
     test('URL-fetched output matches local-file output', () => {

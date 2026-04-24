@@ -27,6 +27,12 @@ export class TypeCollector {
     return name;
   }
 
+  getUsedTypes(content: string): string[] {
+    return this.collected
+        .filter(t => new RegExp(`\\b${t.name}\\b`).test(content))
+        .map(t => t.name);
+  }
+
   render(): string {
     return this.collected
         .map(({name, body, isUnion}) =>
