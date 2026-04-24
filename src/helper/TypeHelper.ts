@@ -1,6 +1,13 @@
 import {ApiParam} from '../types';
 
 export default class TypeHelper {
+  public static additionalStringTypes: string[] = [];
+
+  private static get additionalStringTypeMap(): Record<string, 'string'> {
+    return Object.fromEntries(TypeHelper.additionalStringTypes.map(v => [v.toLowerCase(), 'string']));
+
+  }
+
   private static readonly stringTypes: Record<string, 'string'> = {
     'string': 'string',
     'char': 'string',
@@ -13,6 +20,7 @@ export default class TypeHelper {
     'long': 'number',
     'float': 'number',
     'double': 'number',
+    'decimal': 'number',
   };
 
   private static readonly booleanTypes: Record<string, 'boolean'> = {
@@ -48,6 +56,7 @@ export default class TypeHelper {
   private static get typeMap(): Record<string, string> {
     return {
       ...TypeHelper.stringTypes,
+      ...TypeHelper.additionalStringTypeMap,
       ...TypeHelper.numberTypes,
       ...TypeHelper.booleanTypes,
       ...TypeHelper.objectTypes,
@@ -89,7 +98,7 @@ export default class TypeHelper {
   }
 
   public static isStringType(type: string) {
-    return !!TypeHelper.stringTypes[type.toLowerCase()];
+    return !!{...TypeHelper.additionalStringTypeMap, ...TypeHelper.stringTypes}[type.toLowerCase()];
   }
 
   public static isNumberType(type: string) {
