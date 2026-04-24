@@ -237,7 +237,14 @@ export default class ApiDocJS2TypeScript {
               return `export type ${apiAction.name}Response = unknown`;
             }
 
-            return TypeScriptRenderer.renderInterface(this.getResponseInterfaceName(apiAction), ApiDocJS2TypeScript.nestedFields(this.getFlatParams(apiAction.success.fields)));
+            const nestedParams = ApiDocJS2TypeScript.nestedFields(this.getFlatParams(apiAction.success.fields));
+            const topLevelKeys = Object.keys(nestedParams);
+
+            if (topLevelKeys.length === 1 && topLevelKeys[0] === '_' && nestedParams['_'].children) {
+              return TypeScriptRenderer.renderArrayTypeAlias(this.getResponseInterfaceName(apiAction), nestedParams['_'].children);
+            }
+
+            return TypeScriptRenderer.renderInterface(this.getResponseInterfaceName(apiAction), nestedParams);
 
           });
 

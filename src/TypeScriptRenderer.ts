@@ -12,6 +12,12 @@ export default class TypeScriptRenderer {
     }`;
   }
 
+  public static renderArrayTypeAlias(name: string, itemFields: NestedApiParams) {
+    return `export type ${name} = {
+      ${TypeScriptRenderer.renderNestedParams(itemFields)}
+    }[];`;
+  }
+
   private static renderNestedParams(fields: NestedApiParams): string {
     let renderedFields: string[] = [];
 
