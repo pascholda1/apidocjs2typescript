@@ -1,46 +1,65 @@
 import {ApiAction, ApiParam, NestedApiParams} from './types';
 import TypeHelper                             from './helper/TypeHelper';
+import {TypeCollector}                        from './helper/TypeCollector';
+import {toValidInterfaceName}                 from './helper/FormatHelper';
 
 type JsDocParamName = `@${string}`
 type JsDocParams = Record<JsDocParamName, string | null>
 
 export default class TypeScriptRenderer {
 
-  public static renderInterface(name: string, fields: NestedApiParams) {
+  public static renderInterface(name: string, fields: NestedApiParams, collector: TypeCollector, topLevelNoDedup = false) {
     return `export interface ${name} {
-      ${TypeScriptRenderer.renderNestedParams(fields)}
+      ${TypeScriptRenderer.renderNestedParams(fields, collector, name, 0, topLevelNoDedup)}
     }`;
   }
 
-  public static renderArrayTypeAlias(name: string, itemFields: NestedApiParams) {
+  public static renderArrayTypeAlias(name: string, itemFields: NestedApiParams, collector: TypeCollector) {
     return `export type ${name} = {
-      ${TypeScriptRenderer.renderNestedParams(itemFields)}
+      ${TypeScriptRenderer.renderNestedParams(itemFields, collector, name)}
     }[];`;
   }
 
-  private static renderNestedParams(fields: NestedApiParams): string {
+  private static renderNestedParams(fields: NestedApiParams, collector: TypeCollector, parentTypeName: string, depth = 0, topLevelNoDedup = false): string {
     let renderedFields: string[] = [];
 
     for (const name in fields) {
       const field = fields[name];
       if (field.children) {
+        const childTypeName = toValidInterfaceName(name);
+        const isArray = field.type && TypeHelper.isArrayType(field.type);
+        const forceUnique = topLevelNoDedup && depth === 0;
+        const childBody = TypeScriptRenderer.renderNestedParams(field.children, collector, childTypeName, depth + 1);
+        const resolvedName = collector.register(childTypeName, childBody, parentTypeName, false, forceUnique);
         const optionalModifier = TypeHelper.getOptionalModifier(field);
         const docs = TypeScriptRenderer.renderJSDocsParameterComment(field);
-        const array = field.type && TypeHelper.isArrayType(field.type) ? '[]' : '';
+        const array = isArray ? '[]' : '';
         renderedFields.push(`${docs}
-        ${name}${optionalModifier}: {
-        ${TypeScriptRenderer.renderNestedParams(field.children)}
-        }${array}`);
+        ${name}${optionalModifier}: ${resolvedName}${array}`);
       } else {
-        renderedFields.push(TypeScriptRenderer.renderApiParam(name, field));
+        renderedFields.push(TypeScriptRenderer.renderApiParam(name, field, collector, parentTypeName));
       }
     }
 
     return renderedFields.join('\n');
   }
 
-  private static renderApiParam(name: string, apiParam: ApiParam) {
-    const type = apiParam.type ? TypeHelper.getTsType(apiParam) : 'any';
+  private static renderApiParam(name: string, apiParam: ApiParam, collector: TypeCollector, parentTypeName: string) {
+    let type: string;
+    if (apiParam.allowedValues && apiParam.type && TypeHelper.isStringType(apiParam.type)) {
+      const unionBody = apiParam.allowedValues
+          .map(v => {
+            if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith('\'') && v.endsWith('\''))) {
+              return v;
+            }
+            return `'${v}'`;
+          })
+          .join(' | ');
+      type = collector.register(toValidInterfaceName(name), unionBody, parentTypeName, true);
+    } else {
+      type = apiParam.type ? TypeHelper.getTsType(apiParam) : 'any';
+    }
+
     const fieldName = RegExp(/[-\s.]/).exec(name) ? `'${name}'` : name;
     const optionalModifier = TypeHelper.getOptionalModifier(apiParam);
     const docs = TypeScriptRenderer.renderJSDocsParameterComment(apiParam);

@@ -59,10 +59,12 @@ See the [Example](#example) below for more details.
 
 | Option               | Required | Description                                                                                                                      |
 |----------------------|----------|----------------------------------------------------------------------------------------------------------------------------------|
-| --docs               | ✅        | Root directory of the generated ApiDocJS documentation. <br/>Can be a local path or an accessible URL starting with `http(s)://` |
+| --docs-json          | ✅        | Path to the generated ApiDocJS `api-data.json`. <br/>Can be a local path or an accessible URL starting with `http(s)://`        |
 | --out                | ✅        | Output directory. Must be a local path.                                                                                          |
 | --api-name           | ❌        | The subdirectory name to encapsulate the types of the current API. <br/>defaults to `default`                                    |
 | --no-request-service | ❌        | If set, the `RequestService` will not be copied to your project. Useful if you want to implement your own.                       |
+| --string-types       | ❌        | Comma-separated list of additional type names to treat as `string` (e.g. `--string-types=Date,UUID`).                           |
+| --inline-types       | ❌        | If set, nested object types and union types are rendered inline instead of as separate named `export type` declarations.         |
 
 You can generate multiple APIs for the same project by running the script multiple times with different ApiDocJS documentations, using the same output directory.
 
@@ -107,11 +109,82 @@ The Documentation:
 The generated Request Interface:
 
 ```typescript
+export type ContentType = 'application/x-www-form-urlencoded' | 'multipart/formdata' | 'application/json';
 
+export type SampleActionRequestHeader = {
+  'Content-Type': ContentType
+};
+
+export type SampleActionRequestPath = {
+  pageId: string
+};
+
+export type SampleActionRequestQuery = {
+  search: string
+};
+
+export type Value2 = {
+  /**
+   * @description <p>mixed notation nesting</p>
+   */
+  deepValue?: string
+};
+
+export type Nested = {
+  /**
+   * @description <p>dot notation nesting</p>
+   */
+  value1: string
+
+  /**
+   * @description <p>bracket notation nesting</p>
+   */
+  value2: Value2
+};
+
+export type Language = 'de' | 'en';
+
+export type SampleActionRequestBody = {
+  /**
+   * @description <p>list of products</p>
+   */
+  product: string[]
+
+  language?: Language
+
+  /**
+   * @description <p>a number parameter</p>
+   */
+  no: number
+
+  /**
+   * @description <p>a nested field</p>
+   */
+  nested: Nested
+};
+
+/**
+ * @deprecated
+ * @description <p>This is a simple sample</p>
+ */
+export interface SampleActionRequest {
+  header: SampleActionRequestHeader
+  path: SampleActionRequestPath
+  query: SampleActionRequestQuery
+  body: SampleActionRequestBody
+}
+```
+
+Use `--inline-types` to get the classic inline output instead:
+
+```typescript
+/**
+ * @deprecated
+ * @description <p>This is a simple sample</p>
+ */
 export interface SampleActionRequest {
 
   header: {
-
     'Content-Type': 'application/x-www-form-urlencoded' | 'multipart/formdata' | 'application/json'
   };
 
@@ -124,36 +197,12 @@ export interface SampleActionRequest {
   };
 
   body: {
-    /**
-     * @description <p>list of products</p>
-     */
-
     product: string[]
-
     language?: 'de' | 'en'
-
-    /**
-     * @description <p>a number parameter</p>
-     */
     no: number
-
-    /**
-     * @description <p>a nested field</p>
-     */
     nested: {
-      /**
-       * @description <p>dot notation nesting</p>
-       */
       value1: string
-
-      /**
-       * @description <p>bracket notation nesting</p>
-       */
       value2: {
-
-        /**
-         * @description <p>mixed notation nesting</p>
-         */
         deepValue?: string
       }
     }
@@ -164,32 +213,35 @@ export interface SampleActionRequest {
 The generated Response Interface:
 
 ```typescript
+export type Value2 = {
+  /**
+   * @description <p>mixed notation nesting</p>
+   */
+  deepValue?: string
+};
+
+export type Nested = {
+  /**
+   * @description <p>dot notation nesting</p>
+   */
+  value1: string
+
+  /**
+   * @description <p>bracket notation nesting</p>
+   */
+  value2: Value2
+};
+
 export interface SampleActionResponse {
   /**
    * @description <p>a number parameter</p>
    */
-  no: number;
+  no: number
 
   /**
    * @description <p>a nested field</p>
    */
-  nested: {
-    /**
-     * @description <p>dot notation nesting</p>
-     */
-    value1: string
-
-    /**
-     * @description <p>bracket notation nesting</p>
-     */
-    value2: {
-
-      /**
-       * @description <p>mixed notation nesting</p>
-       */
-      deepValue?: string
-    }
-  };
+  nested: Nested
 }
 ```
 

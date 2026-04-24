@@ -10,6 +10,7 @@ interface Params extends minimist.ParsedArgs {
   'api-name'?: string
   'request-service'?: boolean
   'string-types'?: string
+  'inline-types'?: boolean
 }
 
 const {
@@ -18,6 +19,7 @@ const {
         'api-name': apiName                   = 'default',
         'request-service': copyRequestService = true,
         'string-types': stringTypes           = '',
+        'inline-types': inlineTypes           = false,
       } = minimist<Params>(process.argv.slice(2));
 if (!docs) {
   throw new Error('--docs parameter is missing. See documentation for more details');
@@ -29,7 +31,7 @@ if (!out) {
 
 TypeHelper.additionalStringTypes = stringTypes.split(',');
 
-const generator = new ApiDocJS2TypeScript(docs, apiName, out, copyRequestService);
+const generator = new ApiDocJS2TypeScript(docs, apiName, out, copyRequestService, inlineTypes);
 generator
     .loadData()
     .then(generator => generator.generateAll());

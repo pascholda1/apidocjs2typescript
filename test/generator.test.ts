@@ -1,6 +1,9 @@
-import {spawnSync} from 'child_process';
-import fs          from 'fs';
-import path        from 'path';
+import {spawnSync}          from 'child_process';
+import fs                   from 'fs';
+import path                 from 'path';
+import {http, HttpResponse} from 'msw';
+import {server}             from './server';
+import ApiDocJS2TypeScript  from '../src/ApiDocJS2TypeScript';
 
 describe('generator test', () => {
   const generatedTypeDirs = [
@@ -92,6 +95,174 @@ describe('generator test', () => {
 
       expect(result.status).toBe(0);
 
+    });
+
+  });
+
+  describe('type deduplication', () => {
+
+    test('identical nested types are deduplicated within a file', () => {
+      const content = fs.readFileSync('./test/api/default/responses/User.ts', 'utf-8');
+
+      // Profile and Options each appear in exactly one export type declaration
+      expect((content.match(/^export type Profile = /mg) ?? []).length).toBe(1);
+      expect((content.match(/^export type Options = /mg) ?? []).length).toBe(1);
+
+      // The interfaces reference the named types instead of inlining
+      expect(content).toContain('profile: Profile');
+      expect(content).toContain('options: Options[]');
+    });
+
+    test('top-level request groups are not merged across interfaces', () => {
+      const content = fs.readFileSync('./test/api/default/requests/City.ts', 'utf-8');
+
+      // Each group gets its own named type prefixed with the interface name
+      expect(content).toContain('export type CreateCityRequestHeader');
+      expect(content).toContain('export type CreateCityRequestPath');
+      expect(content).toContain('export type CreateCityRequestQuery');
+      expect(content).toContain('export type CreateCityRequestBody');
+
+      // path must not reuse the Header type even though both are empty
+      expect(content).not.toMatch(/path\??: \w*Header/);
+    });
+
+    test('conflicting type names are prefixed with the parent interface name', () => {
+      const content = fs.readFileSync('./test/api/default/requests/User.ts', 'utf-8');
+
+      // DeleteUserRequest and GetUserRequest both have a header group but with different shapes
+      expect(content).toContain('export type DeleteUserRequestHeader');
+      expect(content).toContain('export type GetUserRequestHeader');
+    });
+
+  });
+
+  describe('--inline-types flag', () => {
+    const outDir = './test/api-inline';
+
+    beforeAll(() => {
+      fs.rmSync(outDir, {recursive: true, force: true});
+
+      spawnSync(
+          'node',
+          [
+            './dist/index.js',
+            '--docs-json=./test/data/api-data.json',
+            `--out=${outDir}`,
+            '--inline-types',
+          ],
+          {encoding: 'utf-8', stdio: 'pipe'},
+      );
+    });
+
+    afterAll(() => {
+      fs.rmSync(outDir, {recursive: true, force: true});
+    });
+
+    test('no extracted type declarations in request files', () => {
+      const content = fs.readFileSync(path.join(outDir, 'default/requests/City.ts'), 'utf-8');
+
+      // With --inline-types no separate export type declarations for objects or unions
+      expect(content).not.toMatch(/^export type \w+ = \{/m);
+      expect(content).not.toMatch(/^export type \w+ = '/m);
+    });
+
+    test('union types are rendered inline', () => {
+      const content = fs.readFileSync(path.join(outDir, 'default/requests/City.ts'), 'utf-8');
+
+      expect(content).toContain("'Aerial' | 'Land' | 'Underwater'");
+    });
+
+    test('nested object types are rendered inline', () => {
+      const content = fs.readFileSync(path.join(outDir, 'default/requests/User.ts'), 'utf-8');
+
+      // extraInfo is an inline object block, not a named type reference
+      expect(content).toMatch(/extraInfo\??: \{/);
+    });
+
+    test('can compile inline-types generated files', () => {
+      const result = spawnSync('npx', [
+        'tsc',
+        path.join(outDir, 'default/requests/City.ts'),
+        path.join(outDir, 'default/requests/User.ts'),
+        path.join(outDir, 'default/responses/User.ts'),
+        '--noEmit',
+        '--strict',
+      ], {encoding: 'utf-8', stdio: 'pipe'});
+
+      expect(result.status).toBe(0);
+    });
+
+  });
+
+  describe('--no-request-service flag', () => {
+    const outDir = './test/api-no-rs';
+
+    beforeAll(() => {
+      fs.rmSync(outDir, {recursive: true, force: true});
+
+      spawnSync(
+          'node',
+          [
+            './dist/index.js',
+            '--docs-json=./test/data/api-data.json',
+            `--out=${outDir}`,
+            '--no-request-service',
+          ],
+          {encoding: 'utf-8', stdio: 'pipe'},
+      );
+    });
+
+    afterAll(() => {
+      fs.rmSync(outDir, {recursive: true, force: true});
+    });
+
+    test('RequestService.ts is not copied', () => {
+      expect(fs.existsSync(path.join(outDir, 'RequestService.ts'))).toBe(false);
+    });
+
+    test('other static files are still copied', () => {
+      expect(fs.existsSync(path.join(outDir, 'Endpoint.ts'))).toBe(true);
+      expect(fs.existsSync(path.join(outDir, 'RequestServiceError.ts'))).toBe(true);
+    });
+
+  });
+
+  describe('URL-based docs-json', () => {
+    const outDir = './test/api-url';
+    const docsUrl = 'http://test.apidocjs/api-data.json';
+
+    beforeAll(async () => {
+      fs.rmSync(outDir, {recursive: true, force: true});
+
+      const apiData = JSON.parse(fs.readFileSync('./test/data/api-data.json', 'utf-8'));
+      server.use(
+          http.get(docsUrl, () => HttpResponse.json(apiData)),
+      );
+
+      const generator = new ApiDocJS2TypeScript(docsUrl, 'default', outDir);
+      await generator.loadData();
+      generator.cleanApiDir()
+          .generateRequestModels()
+          .generateResponseModels()
+          .generateEndpointDefinitions();
+    });
+
+    afterAll(() => {
+      fs.rmSync(outDir, {recursive: true, force: true});
+    });
+
+    test('generates request, response and endpoint files from a URL', () => {
+      ['requests', 'responses', 'endpoints'].forEach(typeDir => {
+        ['User.ts', 'City.ts'].forEach(file => {
+          expect(fs.existsSync(path.join(outDir, 'default', typeDir, file))).toBe(true);
+        });
+      });
+    });
+
+    test('URL-fetched output matches local-file output', () => {
+      const localContent  = fs.readFileSync('./test/api/default/requests/City.ts', 'utf-8');
+      const urlContent    = fs.readFileSync(path.join(outDir, 'default/requests/City.ts'), 'utf-8');
+      expect(urlContent).toBe(localContent);
     });
 
   });

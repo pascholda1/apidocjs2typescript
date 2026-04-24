@@ -13,11 +13,13 @@ import {
 }                             from './types';
 import TypeScriptRenderer     from './TypeScriptRenderer';
 import {toValidInterfaceName} from './helper/FormatHelper';
+import {TypeCollector}        from './helper/TypeCollector';
 
 export default class ApiDocJS2TypeScript {
   private readonly docsJsonFile: string;
   private readonly outputPath: string;
   private readonly copyRequestService: boolean;
+  private readonly inlineTypes: boolean;
   /**
    * @description The Name of the API. Will be used as root directory name
    *
@@ -26,8 +28,9 @@ export default class ApiDocJS2TypeScript {
   private apiName: string = 'default';
   private apiActions: ApiAction[] = [];
 
-  constructor(docsJsonFile: string, apiName: string, outputPath: string = 'types', copyRequestService = true) {
+  constructor(docsJsonFile: string, apiName: string, outputPath: string = 'types', copyRequestService = true, inlineTypes = false) {
     this.copyRequestService = copyRequestService;
+    this.inlineTypes = inlineTypes;
     const baseDir = process.cwd();
     this.outputPath = path.join(baseDir, outputPath);
     this.docsJsonFile = this.isWebUrl(docsJsonFile) ? docsJsonFile : path.join(baseDir, docsJsonFile);
@@ -176,6 +179,7 @@ export default class ApiDocJS2TypeScript {
     const files = this.groupedActions;
 
     for (const filename in files) {
+      const fileCollector = new TypeCollector(this.inlineTypes);
       const renderedActions = files[filename]
           .map(apiAction => {
             const headerParams = this.getRequestHeaderParameters(apiAction);
@@ -212,13 +216,14 @@ export default class ApiDocJS2TypeScript {
 
             return [
               TypeScriptRenderer.renderJSDocsActionComment(apiAction),
-              TypeScriptRenderer.renderInterface(this.getRequestInterfaceName(apiAction), requestParams),
+              TypeScriptRenderer.renderInterface(this.getRequestInterfaceName(apiAction), requestParams, fileCollector, true),
             ].join('\n');
           });
 
+      const typeDefs = fileCollector.render();
       this.writeOutputFile(
           path.join(this.outputPath, this.apiName, 'requests', `${filename}.ts`),
-          renderedActions.join('\n'),
+          typeDefs ? `${typeDefs}\n\n${renderedActions.join('\n')}` : renderedActions.join('\n'),
       );
 
     }
@@ -231,6 +236,7 @@ export default class ApiDocJS2TypeScript {
     const files = this.groupedActions;
 
     for (const filename in files) {
+      const fileCollector = new TypeCollector(this.inlineTypes);
       const renderedActions = files[filename]
           .map(apiAction => {
             if (!apiAction.success?.fields) {
@@ -241,16 +247,17 @@ export default class ApiDocJS2TypeScript {
             const topLevelKeys = Object.keys(nestedParams);
 
             if (topLevelKeys.length === 1 && topLevelKeys[0] === '_' && nestedParams['_'].children) {
-              return TypeScriptRenderer.renderArrayTypeAlias(this.getResponseInterfaceName(apiAction), nestedParams['_'].children);
+              return TypeScriptRenderer.renderArrayTypeAlias(this.getResponseInterfaceName(apiAction), nestedParams['_'].children, fileCollector);
             }
 
-            return TypeScriptRenderer.renderInterface(this.getResponseInterfaceName(apiAction), nestedParams);
+            return TypeScriptRenderer.renderInterface(this.getResponseInterfaceName(apiAction), nestedParams, fileCollector);
 
           });
 
+      const typeDefs = fileCollector.render();
       this.writeOutputFile(
           path.join(this.outputPath, this.apiName, 'responses', `${filename}.ts`),
-          renderedActions.join('\n'),
+          typeDefs ? `${typeDefs}\n\n${renderedActions.join('\n')}` : renderedActions.join('\n'),
       );
     }
 
